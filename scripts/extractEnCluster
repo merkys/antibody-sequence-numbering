@@ -4,9 +4,9 @@ idsFileName=${1}
 seqFileName=${2}
 outputFileName=${3}
 
-# This script is intended to extract identifiers and sequences
-# from the main file containing all sequences, using a list of IDs,
-# and write them to a gziped file in FASTA format.
+# This script extracts sequences corresponding to IDs from the ID file and
+# writes them to a separate file. Then it clusters the file and
+# generates two files: a file with clusters and a clustered FASTA file.
 
 # Usage -------------------------------------\
 # ${0} idFile seqFile outputDir              \

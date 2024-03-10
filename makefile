@@ -1,4 +1,3 @@
-
 # Directories
 SCRIPTS = scripts
 DATA = data
@@ -31,7 +30,7 @@ PFAM_SCAN_OUTPUT = ${PFAM_SCAN_NAME}.${PFAM_OUT}
 EXTRACT = ${SCRIPTS}/extractEnCluster
 ID_FILTER = ${SCRIPTS}/idFilter
 PFAM_SCAN = ${PFAM_DIR}/pfam_scan.pl
-
+PDF_SEQ_DOWNLOAD = ${SCRIPTS}/pdbSeqDownload
 
 all: ${PFAM_SCAN_OUTPUT} 
 
@@ -46,7 +45,8 @@ ${CLUSTERED_FASTA}: ${EXTRACTED_FASTA}
 
 ${CLUSTER_FILE}: ${CLUSTERED_FASTA}
 
-
+${PDB_SEQ_FILE}:
+	./${PDF_SEQ_DOWNLOAD} .
 
 
 

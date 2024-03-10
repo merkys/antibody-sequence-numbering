@@ -2,6 +2,16 @@
 
 use strict;
 use warnings;
+
+# This script selects the required IDs from the general list based
+# on the generated pfam_scan.pl file and generates a separate file
+# with the selected IDs.
+
+# Usage -------------------------------------\
+# idFilter idFile pfamOutFile outputFile     \
+#--------------------------------------------\
+
+
 sub checkIfAntibody
 {
 	my ($currentLine, $previousline, $id) = @_;
