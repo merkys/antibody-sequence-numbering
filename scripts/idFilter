@@ -1,0 +1,63 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+sub checkIfAntibody
+{
+	my ($currentLine, $previousline, $id) = @_;
+
+	if( $previousline =~ /^$id.+V-set.+/ 
+		&& $currentLine =~ /^$id.+C1-set.+/)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+my $idFile = $ARGV[0];
+my $pfamOutFile = $ARGV[1];
+my $outFile = $ARGV[2];
+
+
+open(my $pfam_handler,'<', $pfamOutFile)
+	or die " Could not open file: '$pfamOutFile' $!";
+
+open(my $id_handler,'<', $idFile)
+	or die " Could not open file: '$idFile' $!";
+
+my $id_line = <$id_handler>;
+my @ids;
+push(@ids, split(/,/, $id_line));
+close($id_handler);
+
+
+my $currentPfam_line='';
+my $previousPfam_line='';
+my $lastFoundId_position = 0;
+my @good_ids;
+foreach my $id (@ids)
+{
+	$id = lc $id;
+	while (my $line = <$pfam_handler>)
+	{
+		next if $line =~ /^#/;
+		$currentPfam_line = $line;
+		if( checkIfAntibody($currentPfam_line, $previousPfam_line, $id))
+		{
+			push @good_ids, $id;
+			$lastFoundId_position = tell $pfam_handler;
+			last;
+		}
+		$previousPfam_line = $currentPfam_line;
+	}
+	seek($pfam_handler, $lastFoundId_position, 0);
+}
+
+open(my $out_handler, '>', $outFile )
+	or die "Could not open file '$outFile' $!";
+
+$, = ",";
+print $out_handler @good_ids;
+
+close($out_handler);
+close($pfam_handler);

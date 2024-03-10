@@ -1,0 +1,37 @@
+#!/usr/bin/bash
+
+idsFileName=${1}
+seqFileName=${2}
+outputFileName=${3}
+
+# This script is intended to extract identifiers and sequences
+# from the main file containing all sequences, using a list of IDs,
+# and write them to a gziped file in FASTA format.
+
+# Usage -------------------------------------\
+# ${0} idFile seqFile outputDir              \
+#--------------------------------------------\
+
+file_type=$(file -b "$seqFileName")
+
+if [[ ! $file_type == *gzip* ]]
+then
+	echo "Sequence file has to be gzipped" 1>&2
+	exit 1
+fi
+
+
+IFS=', ' read -ra id_array < "$idsFileName"
+
+touch ${outputFileName}
+for id in "${id_array[@]}"
+do
+	echo "$id is currently processing"
+	id=$(echo "$id" | tr '[:upper:]' '[:lower:]')
+	zcat $seqFileName | grep -A 1 $id >> ${outputFileName}
+done
+
+echo "All sequences have been successfully extracted from file"
+echo "Starting clustering"
+
+cd-hit -i ${outputFileName} -c 1 -o "${outputFileName}Clustered.fasta"
