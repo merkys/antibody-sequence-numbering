@@ -66,7 +66,7 @@ foreach my $id (@ids)
 open(my $out_handler, '>', $outFile )
 	or die "Could not open file '$outFile' $!";
 
-$, = ",";
+$, = "\n";
 print $out_handler @good_ids;
 
 close($out_handler);

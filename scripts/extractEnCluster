@@ -30,7 +30,7 @@ do
 	id=$(echo "$id" | tr '[:upper:]' '[:lower:]')
 	zcat $seqFileName | grep -A 1 $id >> ${outputFileName}
 done
-
+sed -i '/^--$/d' ${outputFileName}
 echo "All sequences have been successfully extracted from file"
 echo "Starting clustering"
 
