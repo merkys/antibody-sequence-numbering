@@ -37,6 +37,8 @@ PFAM_SCAN = ${PFAM_DIR}/pfam_scan.pl
 PDB_SEQ_DOWNLOAD = ${SCRIPTS}/pdbSeqDownload
 PDB_DATA_DOWNLOAD = ${SCRIPTS}/downloadPdbFiles
 
+# Environment
+PERL5LIB := ${PERL5LIB}:externals/PfamScan
 
 all: ${FILTERED_IDS_FILE}
 	./${PDB_DATA_DOWNLOAD} $< ${DATA} ${LOGS} ${PDB}.${GZ}
