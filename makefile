@@ -2,7 +2,7 @@
 SCRIPTS = scripts
 DATA = data
 LOGS = logs
-PFAM_DIR = ~/src/PfamScan
+PFAM_DIR = externals/PfamScan
 
 # Essential files
 PDB_SEQ_FILE = pdb_seqres.txt.gz
