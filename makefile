@@ -22,12 +22,12 @@ DATA_FILE_NAMES = $(addsuffix .${PDB}.${GZ}, $(shell cat ${SORTED_IDS_FILE}))
 DATA_FILES = $(addprefix ${DATA}/, ${DATA_FILE_NAMES})
 LIGHT_CHAINS = ${HEAVY_LIGHT}/light_chains.${IDS_FILE}
 HEAVY_CHAINS = ${HEAVY_LIGHT}/heavy_chains.${IDS_FILE}
+
 # Link
 PDB_LINK = http://www.rcsb.org/pdb/files
 
 all: ${HEAVY_CHAINS} ${LIGHT_CHAINS}
 
-	
 ${HEAVY_CHAINS} ${LIGHT_CHAINS}: ${DATA_FILES}
 	./${READ_FRAGMENT} ${DATA} ${HEAVY_LIGHT}
 
