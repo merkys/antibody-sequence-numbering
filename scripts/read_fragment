@@ -1,0 +1,76 @@
+#!/bin/perl
+
+use strict;
+use warnings;
+use IO::Uncompress::Gunzip;
+use File::Basename;
+
+my $pdb_gzipped = $ARGV[0];
+my $out_dir = $ARGV[1];
+
+
+my $pdb_handler = IO::Uncompress::Gunzip->new($pdb_gzipped)
+	or die "Can't open $pdb_gzipped\n";
+
+my $id = basename($pdb_gzipped);
+$id =~ s/.pdb.gz//;
+my @compnd;
+while (my $line = <$pdb_handler>)
+{
+	if($line =~ /^COMPND/)
+	{
+		push @compnd, $line;
+    	}
+}
+close $pdb_handler;
+my $compnd = join("", @compnd);
+chomp($compnd);
+@compnd = split (/;/, $compnd);
+
+for( my $i=0; $i< scalar(@compnd); $i++)
+{
+	$compnd[$i] = $compnd[$i] . ";";
+}
+open(my $light_handler, '>>', "$out_dir/light_chains.txt" )
+	or die "Could not open file '$$out_dir/light_chains.txt' $!";
+	
+open(my $heavy_handler, '>>', "$out_dir/heavy_chains.txt" )
+	or die "Could not open file '$$out_dir/heavy_chains.txt' $!";
+
+my $light_found =0;
+my $heavy_found=0;
+my $heavy_chain;
+my $light_chain;
+for( my $i=1; $i<= scalar(@compnd); $i++)
+{
+	if($compnd[$i-1] =~ /.+MOLECULE:.+light chain.+/i)
+	{	
+		if($compnd[$i]=~/.+CHAIN: ([A-Z])/)
+		{
+			$light_found =1;
+			$light_chain = $1;
+		}
+		
+	}
+	
+	
+	if($compnd[$i-1] =~ /.+MOLECULE:.+heavy chain.+/i)
+	{
+		if($compnd[$i]=~/.+CHAIN: ([A-Z])/)
+		{
+			$heavy_found=1;
+			$heavy_chain=$1;
+		}
+		
+	}
+}
+
+if($light_found && $heavy_found)
+{
+	print $light_handler $id. "_" . $light_chain . "\n";
+	print $heavy_handler $id. "_" . $heavy_chain . "\n";
+}
+
+close($light_handler);
+close($heavy_handler);
+
