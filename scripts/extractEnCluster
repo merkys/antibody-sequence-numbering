@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 idsFileName=${1}
 seqFileName=${2}

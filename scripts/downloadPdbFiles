@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/bin/sh
 
 ID_FILE=${1}
 OUTDIR=${2}
