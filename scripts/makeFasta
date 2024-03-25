@@ -1,0 +1,20 @@
+#!/bin/bash
+
+OUTPUT_FILE=${1}
+INPUT_FILE=${2}
+DATA_DIR=${3}
+chain_id_regex='^([a-z0-9]+)_([A-Z])+$'
+>$OUTPUT_FILE
+for id_chain in $(cat $INPUT_FILE)
+do
+	if [[ $id_chain =~ $chain_id_regex ]]
+	then
+		id="${BASH_REMATCH[1]}"
+		chain="${BASH_REMATCH[2]}"
+		echo "$DATA_DIR/$id.pdb.gz is proccesing"
+		echo "fetching chain: $chain"
+		echo ">$id" >> $OUTPUT_FILE
+		zcat $DATA_DIR/$id.pdb.gz | grep "^ATOM" | pdb_chain -c $chain |\
+		pdb2seq | head -c -1 >> $OUTPUT_FILE
+	fi
+done
