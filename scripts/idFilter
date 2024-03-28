@@ -45,20 +45,26 @@ my $currentPfam_line='';
 my $previousPfam_line='';
 my $lastFoundId_position = 0;
 my @good_ids;
+my $numberOfGoodChains=0;
 foreach my $id (@ids)
 {
 	$id = lc $id;
+	$numberOfGoodChains=0;
+	print "Processing $id\n";
 	while (my $line = <$pfam_handler>)
 	{
 		next if $line =~ /^#/;
 		$currentPfam_line = $line;
 		if( checkIfAntibody($currentPfam_line, $previousPfam_line, $id))
 		{
-			push @good_ids, $id;
+			$numberOfGoodChains++;
 			$lastFoundId_position = tell $pfam_handler;
-			last;
 		}
 		$previousPfam_line = $currentPfam_line;
+	}
+	if($numberOfGoodChains == 2)
+	{
+		push @good_ids, $id;
 	}
 	seek($pfam_handler, $lastFoundId_position, 0);
 }

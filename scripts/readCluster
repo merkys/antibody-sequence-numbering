@@ -1,0 +1,56 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+my $fastaFile = $ARGV[0];
+my $clusterFile = $ARGV[1];
+my $outDir = $ARGV[2];
+
+open(my $fasta_handler,'<', $fastaFile)
+	or die " Could not open file: '$fastaFile' $!";
+	
+open(my $cluster_handler,'<', $clusterFile)
+	or die " Could not open file: '$clusterFile' $!";
+
+my $index=0;
+my @clusters;
+my $currentCluster=0;
+while(my $line = <$cluster_handler>)
+{
+	if($line =~/^>Cluster ([0-9]+)\n/)
+	{
+		$currentCluster=$1;
+		$clusters[$currentCluster] = $line;
+		next;
+	}
+	
+	$clusters[$currentCluster].= $line;
+}
+
+foreach my $cluster (@clusters)
+{
+	my @cluster = split "\n", $cluster;
+	if(@cluster > 6)
+	{
+		my $ids="";
+		my $clusterName ="";
+		foreach my $line (@cluster)
+		{
+			if($line =~/^>Cluster ([0-9]+)/)
+			{
+				$clusterName = "Cluster$1";
+				next;
+			}
+			
+			$line =~/[0-9]+\t.+, >([a-z0-9]+).+/;
+			$ids.= "$1 ";
+		}
+		system("./alignCluster '$fastaFile' '$ids' '$clusterName' '$outDir'");
+	}
+}
+
+
+
+close($fasta_handler);
+close($cluster_handler);

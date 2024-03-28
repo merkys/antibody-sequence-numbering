@@ -28,12 +28,14 @@ GZ = gz
 
 # Output files's names
 EXTRACTED_SEQ = extracted
+TRIMMED_SEQ = ${EXTRACTED_SEQ}Trimmed
 CLUSTERED_SEQ = ${EXTRACTED_SEQ}Clustered
 PFAM_SCAN_NAME = pfam_scan
 ID_FILTER_NAME = sorted_ids
 
 # Output files
 EXTRACTED_FASTA = ${SCRIPTS_OUT}/${EXTRACTED_SEQ}.${FASTA}
+TRIMMED_FASTA = ${SCRIPTS_OUT}/${TRIMMED_SEQ}.${FASTA}
 CLUSTERED_FASTA = ${SCRIPTS_OUT}/${CLUSTERED_SEQ}.${FASTA}
 CLUSTER_FILE = ${SCRIPTS_OUT}/${CLUSTERED_FASTA}.${CLUSTERED}
 FILTERED_IDS_FILE = ${SCRIPTS_OUT}/${ID_FILTER_NAME}.${SORTED_IDS}
@@ -44,21 +46,22 @@ EXTRACT = ${SCRIPTS}/extractEnCluster
 ID_FILTER = ${SCRIPTS}/idFilter
 PFAM_SCAN = ${PFAM_DIR}/pfam_scan.pl
 FTP_DOWNLOAD = ${SCRIPTS}/byLinkDownload
+TRIM_EXTACTED = ${SCRIPTS}/trimExtracted
 
 # FTP links
 SEQ_FROM_PDB_LINK = https://files.wwpdb.org/pub/pdb/derived_data
 PFAM_DATA_LINK = https://ftp.ebi.ac.uk/pub/databases/Pfam/current_release
-
-# PFAM DATA
-
 
 all: ${FILTERED_IDS_FILE}
 
 ${FILTERED_IDS_FILE}: ${PFAM_SCAN_OUTPUT}
 	./${ID_FILTER} ${PDB_ID_FILE} $< $@
 
-${PFAM_SCAN_OUTPUT}: ${EXTRACTED_FASTA} ${PFAM_DATA_FILES}
+${PFAM_SCAN_OUTPUT}: ${TRIMMED_FASTA} ${PFAM_DATA_FILES}
 	${PFAM_SCAN} -fasta $< -dir ${PFAM_SCAN_DATA} -outfile $@
+
+${TRIMMED_FASTA}: ${EXTRACTED_FASTA}
+	./${TRIM_EXTACTED} $< $@
 
 ${EXTRACTED_FASTA}: ${PDB_SEQ_FILE} ${PDB_ID_FILE}
 	./${EXTRACT} ${PDB_ID_FILE} ${PDB_SEQ_FILE} $@
