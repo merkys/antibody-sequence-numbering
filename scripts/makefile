@@ -52,6 +52,8 @@ TRIM_EXTACTED = ${SCRIPTS}/trimExtracted
 SEQ_FROM_PDB_LINK = https://files.wwpdb.org/pub/pdb/derived_data
 PFAM_DATA_LINK = https://ftp.ebi.ac.uk/pub/databases/Pfam/current_release
 
+PERL5LIB := ${PERL5LIB}:${PFAM_DIR}
+
 all: ${FILTERED_IDS_FILE}
 
 ${FILTERED_IDS_FILE}: ${PFAM_SCAN_OUTPUT}
