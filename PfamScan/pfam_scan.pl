@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # $Id: pfam_scan.pl 9592 2017-02-23 09:32:06Z jaina $
 
