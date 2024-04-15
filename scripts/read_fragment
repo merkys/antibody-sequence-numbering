@@ -5,6 +5,7 @@ use warnings;
 use IO::Uncompress::Gunzip;
 use File::Basename;
 
+
 my $data_dir = $ARGV[0];
 my $out_dir = $ARGV[1];
 my @files = glob("$data_dir/*.pdb.gz");

@@ -13,7 +13,7 @@ do
 		chain="${BASH_REMATCH[2]}"
 		echo "$DATA_DIR/$id.pdb.gz is proccesing"
 		echo "fetching chain: $chain"
-		echo ">$id" >> $OUTPUT_FILE
+		echo ">$id_chain" >> $OUTPUT_FILE
 		zcat $DATA_DIR/$id.pdb.gz | grep "^ATOM" | pdb_chain -c $chain |\
 		pdb2seq | head -c -1 >> $OUTPUT_FILE
 	fi

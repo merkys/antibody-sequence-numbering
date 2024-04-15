@@ -2,11 +2,15 @@
 
 use strict;
 use warnings;
+use Cwd;
+
+my $current_directory = getcwd();
+
 
 my $fastaFile = $ARGV[0];
 my $clusterFile = $ARGV[1];
 my $outDir = $ARGV[2];
-
+my $chain_type=$ARGV[3];
 open(my $fasta_handler,'<', $fastaFile)
 	or die " Could not open file: '$fastaFile' $!";
 	
@@ -16,6 +20,7 @@ open(my $cluster_handler,'<', $clusterFile)
 my $index=0;
 my @clusters;
 my $currentCluster=0;
+
 while(my $line = <$cluster_handler>)
 {
 	if($line =~/^>Cluster ([0-9]+)\n/)
@@ -32,21 +37,22 @@ foreach my $cluster (@clusters)
 {
 	my @cluster = split "\n", $cluster;
 	if(@cluster > 6)
-	{
+	{	
+		print $cluster;
 		my $ids="";
 		my $clusterName ="";
 		foreach my $line (@cluster)
 		{
 			if($line =~/^>Cluster ([0-9]+)/)
 			{
-				$clusterName = "Cluster$1";
+				$clusterName = "$chain_type-Cluster$1";
 				next;
 			}
 			
 			$line =~/[0-9]+\t.+, >([a-z0-9]+).+/;
 			$ids.= "$1 ";
 		}
-		system("./alignCluster '$fastaFile' '$ids' '$clusterName' '$outDir'");
+		system("./scripts/alignCluster '$fastaFile' '$ids' '$clusterName' '$outDir' '$current_directory'");
 	}
 }
 

@@ -4,13 +4,14 @@ fastaFile=${1}
 idsInCluster=${2}
 clusterName=${3}
 outDir=${4}
+whereAmI=${5}
 
 fasta=''
-touch tmp.fasta
+touch $whereAmI/tmp.fasta
 for seq in $idsInCluster
 do
 	grep -A 1 "^>$seq" $fastaFile >> tmp.fasta
 done
-muscle -align tmp.fasta -output "$outDir/aligned$clusterName.afa"
-rm tmp.fasta
+muscle -align tmp.fasta -output "$outDir/$clusterName.afa"
+rm $whereAmI/tmp.fasta
 
