@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use IO::Uncompress::Gunzip;
+use File::Basename;
+my $data_dir = $ARGV[0];
+my $out_dir = $ARGV[1];
+my @files = glob("$data_dir/*.pdb.gz");
+my @foundNumbering;
+my @noNumbering;
+foreach my $pdbFile (@files)
+{
+	my $pdb_handler = IO::Uncompress::Gunzip->new($pdbFile)
+			or die "Can't open $pdbFile\n";
+	
+	print "$pdbFile is proccesing\n";
+	while(my $line =<$pdb_handler>)
+	{
+		next if $line !~ /^ATOM/;
+		if($line =~/.{26}[A-Z].{53}/)
+		{
+			push @foundNumbering, $pdbFile; 
+			last;
+		}
+	}
+	close $pdb_handler;
+}
+open(my $found_handler, '>', "$out_dir/idsWithNumbering.txt" )
+	or die "Could not open file '$out_dir/idsWithNumbering.txt' $!";
+
+$, = "\n";
+print $found_handler @foundNumbering;
+
+close($found_handler);

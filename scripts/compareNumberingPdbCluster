@@ -3,14 +3,14 @@
 use strict;
 use warnings;
 use File::Basename;
-		
+use Data::Dumper;
 my $clusterFile = $ARGV[0];
 my $dataDir = $ARGV[1];
 my $out_dir = $ARGV[2];
 my $clusterFileName = basename($clusterFile);
 open(my $cluster_handler,'<', $clusterFile)
 	or die " Could not open file: '$clusterFile' $!";
-
+my %number_by_pos;
 my @seq;
 my $index=-1;
 while(my $line = <$cluster_handler>)
@@ -40,7 +40,6 @@ foreach my $entry (@seq)
    	foreach my $atom (@ATOMS)
    	{
    		$atom =~ /^ATOM\s+[0-9]+\s+[A-Z0-9]+\s*([A-Z]+)\s+$entry->{chain}\s*(-?[0-9]+[A-Z]*).+/;
-   		#print $entry->{pdb_id} . $2 . " ";
    		next if $currentAminoNumber eq $2;
    		$currentAminoNumber = $2;
    		push @pdb_numbering, $currentAminoNumber;
@@ -49,37 +48,91 @@ foreach my $entry (@seq)
   	$entry->{pdb_numbering}=\@pdb_numbering;
 }
 
-open(my $out_handler, '>', "$out_dir/$clusterFileName.out" )
-	or die "Could not open file '$out_dir/$clusterFileName.out' $!";
+open(my $out_handler, '>', "$out_dir/$clusterFileName.tsv" )
+	or die "Could not open file '$out_dir/$clusterFileName.tsv' $!";
+print $out_handler "###Seq info\t\n";
 foreach my $entry (@seq)
 {
 	my $index=0;
 	my $seq_id = "$entry->{pdb_id}_$entry->{chain}";
 	my $offset = length($seq_id);
 	my @output;
-	$output[0] = $seq_id;
+	$output[0] = "$seq_id\t seq\t";
 	for (my $i = 0; $i < $offset; $i++)
 	{
 	    $output[1] .= " ";
 	}
+	my $pos = 1;
 	foreach my $char (split('',$entry->{seq}))
 	{
-		$output[0] .= " $char";
+		
+		$output[0] .= "$char\t";
 		if($char eq '-')
 		{
-			$output[1] .= " -";
+			$output[1] .= "-\t";
+			$number_by_pos{$pos}->{'empty'}++;
 		}
 		else
 		{
-			$output[1] .= " $entry->{pdb_numbering}[$index]";
+			my $number = $entry->{pdb_numbering}[$index];
+			$output[1] .= "$number\t";
 			$index++;
+			$number_by_pos{$pos}->{$number}++;
+			
+		}
+		$pos++;
+	}
+	$entry->{msa_numbering}=$output[1];
+	print $out_handler $output[0] . "\n";
+	print $out_handler "\tnum\t$output[1]\n\n";
+}
+my $the_most_probable_numbering="";
+print $out_handler "###Numbering info\n";
+foreach my $key  (sort { $number_by_pos{$a} <=> $number_by_pos{$b} } keys %number_by_pos)
+{
+	print $out_handler "$key pos\t";
+	my @key_values;
+	my $seq_number = scalar(@seq);
+	my $max_probability=0;
+	my $number="";
+	foreach my $key2 (sort { $number_by_pos{$key}{$b} <=> $number_by_pos{$key}{$a} } keys %{ $number_by_pos{$key} }) 
+	{
+		my $probability = sprintf("%.2f", $number_by_pos{$key}{$key2}/$seq_number);
+		push @key_values, "$key2: $probability";
+		if($max_probability < $probability)
+		{
+			$max_probability = $probability;
+			$number = $key2;
 		}
 	}
-	#print $output[0]. "\n";
-	print $out_handler $output[0] . "\n";
-	print $out_handler $output[1] . "\n\n";
+	$the_most_probable_numbering .= $number;
+	$number_by_pos{$key}{the_most_possible} = $number;
+	print $out_handler join("\t", @key_values) . "\n";
+}
+#print $out_handler "###The most probable number seq\n$the_most_probable_numbering\n";
+print  $out_handler "###Seq coverege\nSeq\tCoverege\t\n";
+foreach my $entry (@seq)
+{
+	my $pos=1;
+	my $possible = 0;
+	#print $entry->{msa_numbering} . "\n\n";
+	foreach my $number (split(' ',$entry->{msa_numbering}))
+	{
+		if($number eq $number_by_pos{$pos}{the_most_possible})
+		{
+			$possible++;
+		}
+		$pos++;
+	}
+
+	my $coverege =  $possible/length($entry->{seq});
+	$entry->{coverege} = sprintf("%.2f", $coverege);
 }
 
 
+foreach my $entry (sort { $b->{coverege} <=> $a->{coverege} } @seq)
+{
+    print $out_handler $entry->{pdb_id} . "\t" . $entry->{coverege} . "%\t\n";
+}
 close($cluster_handler);
 close($out_handler);

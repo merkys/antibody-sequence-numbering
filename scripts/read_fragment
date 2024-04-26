@@ -6,10 +6,15 @@ use IO::Uncompress::Gunzip;
 use File::Basename;
 
 
-my $data_dir = $ARGV[0];
+my $fileOfFiles = $ARGV[0];
 my $out_dir = $ARGV[1];
-my @files = glob("$data_dir/*.pdb.gz");
 
+my @files;
+open my $fh, '<', $fileOfFiles or die "Could not open file '$fileOfFiles' $!";
+while (my $filename = <$fh>) {
+    chomp $filename;
+    push @files, $filename;
+}
 my @light_chains;
 my @heavy_chains;
 foreach my $pdb_file (@files)
