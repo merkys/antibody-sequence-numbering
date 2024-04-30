@@ -1,5 +1,9 @@
 #!/usr/bin/perl
 
+# Detects the numbering scheme used in *.tsv files, based on the explanations of the numbering schemes present in:
+# Dondelinger et al. (2018), doi:10.3389/fimmu.2018.02278
+# The numbering comparison table is given in S1 of the supplementary material.
+
 use strict;
 use warnings;
 
