@@ -1,0 +1,48 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+local $, = "\t";
+local $\ = "\n";
+
+my %pos = (
+    '27A'  => 'L_Kabat',
+    '40A'  => 'L_Martin',
+    '68A'  => 'L_Martin',
+    '107A' => 'L_Martin',
+
+    '8A'   => 'H_Martin',
+    '35A'  => 'H_Kabat',
+    '72A'  => 'H_Martin',
+
+    '30A'  => 'L_Kabat_OR_Chothia',
+    '95A'  => 'L_Kabat_OR_Chothia_OR_Martin',
+    '106A' => 'L_Kabat_OR_Chothia',
+
+    '31A'  => 'H_Chothia_OR_Martin',
+    '82A'  => 'H_Kabat_OR_Chothia',
+    '100A' => 'H_Kabat_OR_Chothia_OR_Martin',
+);
+
+LINE:
+while( <> ) {
+    next if /^#/;
+    next unless /^(\S+)\s+seq\s+/;
+    my $id = $1;
+    $_ = <>;
+    chomp;
+    my( undef, undef, @numbers ) = split /\s+/, $_;
+
+    my @possible_schemes;
+    for my $key (keys %pos) {
+        next unless grep { $_ eq $key } @numbers;
+        push @possible_schemes, $pos{$key};
+    }
+
+    if( @possible_schemes ) {
+        print $id, @possible_schemes;
+    } else {
+        print $id, 'UNKNOWN';
+    }
+}
