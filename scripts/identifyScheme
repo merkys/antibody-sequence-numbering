@@ -18,6 +18,9 @@ my %pos = (
     '35A'  => set( 'H_Kabat' ),
     '72A'  => set( 'H_Martin' ),
 
+    '111A' => set( 'IMGT' ),
+    '112A' => set( 'IMGT' ),
+
     '30A'  => set( 'L_Kabat', 'L_Chothia' ),
     '95A'  => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ),
     '106A' => set( 'L_Kabat', 'L_Chothia' ),
