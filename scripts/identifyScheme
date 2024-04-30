@@ -51,7 +51,7 @@ while( <> ) {
     if( $schemes && @$schemes ) {
         print $id, @$schemes;
     } elsif( grep { $_ =~ /[a-z]/i } @numbers ) {
-        print $id, 'UNKNOWN_NUMBERED';
+        print $id, 'UNKNOWN_NUMBERED', grep { $_ =~ /[a-z]/i } @numbers;
     } else {
         print $id, 'UNKNOWN';
     }
