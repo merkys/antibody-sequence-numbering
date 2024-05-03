@@ -6,28 +6,40 @@ use IO::Uncompress::Gunzip;
 use File::Basename;
 my $data_dir = $ARGV[0];
 my $out_dir = $ARGV[1];
-my @files = glob("$data_dir/*.pdb.gz");
+my $id_file = $ARGV[2];
+open(my $id_handler, '<', $id_file )
+	or die "Could not open file $id_file $!";
+my %files;
+while(my $id =<$id_handler>)
+{
+	$id =~/(.{4})_(.)/;
+	$files{"$1"} = $2;
+}
 my @foundNumbering;
 my @noNumbering;
-foreach my $pdbFile (@files)
+foreach my $pdbFile (keys %files)
 {
-	my $pdb_handler = IO::Uncompress::Gunzip->new($pdbFile)
-			or die "Can't open $pdbFile\n";
-	
+	my $pdb_handler = IO::Uncompress::Gunzip->new("$data_dir/$pdbFile.pdb.gz")
+			or die "Can't open $data_dir/$pdbFile.pdb.gz\n";
+	my $chain_name = $files{$pdbFile};
 	print "$pdbFile is proccesing\n";
 	while(my $line =<$pdb_handler>)
 	{
 		next if $line !~ /^ATOM/;
-		if($line =~/.{26}[A-Z].{53}/)
+		if($line =~/.{21}$chain_name.{4}[A-Z].{53}/)
 		{
-			push @foundNumbering, $pdbFile; 
+			my $pdb_with_chain = $pdbFile . "_$chain_name";
+			push @foundNumbering, $pdb_with_chain; 
 			last;
 		}
 	}
 	close $pdb_handler;
 }
-open(my $found_handler, '>', "$out_dir/idsWithNumbering.txt" )
-	or die "Could not open file '$out_dir/idsWithNumbering.txt' $!";
+my $filename = basename($id_file);
+$filename =~ s/\..*//;
+$filename .= "WithNumbering";
+open(my $found_handler, '>', "$out_dir/$filename.txt" )
+	or die "Could not open file '$out_dir/$filename.txt' $!";
 
 $, = "\n";
 print $found_handler @foundNumbering;
