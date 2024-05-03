@@ -1,0 +1,62 @@
+#!/usr/bin/perl
+
+# Detects the numbering scheme used in *.tsv files, based on the explanations of the numbering schemes present in:
+# Dondelinger et al. (2018), doi:10.3389/fimmu.2018.02278
+# The numbering comparison table is given in S1 of the supplementary material.
+
+use strict;
+use warnings;
+
+use Set::Object qw( set );
+
+local $, = "\t";
+local $\ = "\n";
+
+my %pos = (
+    '27A'  => set( 'L_Kabat' ),
+    '40A'  => set( 'L_Martin' ),
+    '68A'  => set( 'L_Martin' ),
+    '107A' => set( 'L_Martin' ),
+
+    '8A'   => set( 'H_Martin' ),
+    '35A'  => set( 'H_Kabat' ),
+    '72A'  => set( 'H_Martin' ),
+
+    '111A' => set( 'IMGT' ),
+    '112A' => set( 'IMGT' ),
+
+    '30A'  => set( 'L_Kabat', 'L_Chothia' ),
+    '95A'  => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ),
+    '106A' => set( 'L_Kabat', 'L_Chothia' ),
+
+    '31A'  => set( 'H_Chothia', 'H_Martin' ),
+    '82A'  => set( 'H_Kabat', 'H_Chothia' ),
+    '100A' => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ),
+
+    '52A'  => set( 'L_Martin', 'H_Kabat', 'H_Chothia', 'H_Martin' ),
+);
+
+LINE:
+while( <> ) {
+    next if /^#/;
+    next unless /^(\S+)\s+seq\s+/;
+    my $id = $1;
+    $_ = <>;
+    chomp;
+    my( undef, undef, @numbers ) = split /\s+/, $_;
+
+    my $schemes;
+    for my $key (keys %pos) {
+        next unless grep { $_ eq $key } @numbers;
+        $schemes =  $pos{$key} unless $schemes;
+        $schemes *= $pos{$key};
+    }
+
+    if( $schemes && @$schemes ) {
+        print $id, @$schemes;
+    } elsif( grep { $_ =~ /[a-z]/i } @numbers ) {
+        print $id, 'UNKNOWN_NUMBERED', grep { $_ =~ /[a-z]/i } @numbers;
+    } else {
+        print $id, 'UNKNOWN';
+    }
+}
