@@ -256,7 +256,7 @@
 233 pos	214: 1.00
 234 pos	215: 0.86	empty: 0.14
 235 pos	empty: 0.71	216: 0.29
-236 pos	217: 0.71	216: 0.14	empty: 0.14
+236 pos	217: 0.71	empty: 0.14	216: 0.14
 237 pos	218: 0.71	217: 0.14	empty: 0.14
 ###Seq coverege
 Seq	Coverege	

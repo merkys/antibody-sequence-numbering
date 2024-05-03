@@ -153,10 +153,10 @@
 133 pos	125: 1.00
 134 pos	126: 1.00
 135 pos	127: 0.83	empty: 0.17
-136 pos	128: 0.50	empty: 0.50
+136 pos	empty: 0.50	128: 0.50
 137 pos	129: 0.50	empty: 0.50
-138 pos	empty: 0.50	130: 0.50
-139 pos	empty: 0.50	131: 0.50
+138 pos	130: 0.50	empty: 0.50
+139 pos	131: 0.50	empty: 0.50
 140 pos	132: 0.50	empty: 0.50
 141 pos	133: 0.83	empty: 0.17
 142 pos	134: 1.00
@@ -243,9 +243,9 @@
 223 pos	215: 0.83	empty: 0.17
 ###Seq coverege
 Seq	Coverege	
-4jam	0.99%	
+4jam	1.00%	
+4qhl	1.00%	
 4qhn	0.99%	
-4qhl	0.99%	
 4jan	0.98%	
 4qhm	0.97%	
 6vpy	0.97%	
