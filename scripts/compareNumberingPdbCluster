@@ -8,6 +8,7 @@ my $clusterFile = $ARGV[0];
 my $dataDir = $ARGV[1];
 my $out_dir = $ARGV[2];
 my $clusterFileName = basename($clusterFile);
+$clusterFileName =~ s/\..*//;
 open(my $cluster_handler,'<', $clusterFile)
 	or die " Could not open file: '$clusterFile' $!";
 my %number_by_pos;

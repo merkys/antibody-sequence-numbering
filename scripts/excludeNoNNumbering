@@ -38,8 +38,8 @@ foreach my $pdbFile (keys %files)
 my $filename = basename($id_file);
 $filename =~ s/\..*//;
 $filename .= "WithNumbering";
-open(my $found_handler, '>', "$out_dir/$filename.txt" )
-	or die "Could not open file '$out_dir/$filename.txt' $!";
+open(my $found_handler, '>', "$out_dir/$filename.id" )
+	or die "Could not open file '$out_dir/$filename.id' $!";
 
 $, = "\n";
 print $found_handler @foundNumbering;

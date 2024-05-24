@@ -33,5 +33,5 @@ done
 sed -i '/^--$/d' ${outputFileName}
 echo "All sequences have been successfully extracted from file"
 echo "Starting clustering"
-
-cd-hit -i ${outputFileName} -c 1 -o "${outputFileName}Clustered.fasta"
+cd_hit_out=$(basename $outputFileName .fasta)
+cd-hit -i ${outputFileName} -c 1 -o "${cd_hit_out}Clustered.fasta"

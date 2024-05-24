@@ -71,11 +71,11 @@ foreach my $pdb_file (@files)
 		push  @heavy_chains, $id. "_" . $heavy_chain;
 	}
 }
-open(my $light_handler, '>', "$out_dir/light_chains.txt" )
-	or die "Could not open file '$out_dir/light_chains.txt' $!";
+open(my $light_handler, '>', "$out_dir/light_chains.id" )
+	or die "Could not open file '$out_dir/light_chains.id' $!";
 	
-open(my $heavy_handler, '>', "$out_dir/heavy_chains.txt" )
-	or die "Could not open file '$out_dir/heavy_chains.txt' $!";
+open(my $heavy_handler, '>', "$out_dir/heavy_chains.id" )
+	or die "Could not open file '$out_dir/heavy_chains.id' $!";
 
 $, = "\n";
 print $light_handler @light_chains;
