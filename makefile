@@ -22,8 +22,11 @@ TRIMMED_BY_SCHEME = ${SEQ_BY_SCHEME}/trimmedNumbering
 CLUSTERS_BY_SCHEME = ${SEQ_BY_SCHEME}/clusters_align
 NUMBERING_COMPARE= ${SEQ_BY_SCHEME}/numbering_compare
 TRIMMED_BY_SCHEME_CLUSTERS:=${SEQ_BY_SCHEME}/trimmedNumbering_clusters
+HMM_BY_SCHEME_CLUSTERS:=${SEQ_BY_SCHEME}/hmms_clusters
+GENERATED_BY_SCHEME_CLUSTERS:=${SEQ_BY_SCHEME}/hmmemit_generated_seq
+SCORE_BY_SCHEME_CLUSTERS:=${SEQ_BY_SCHEME}/hmmsearch_scores_files
 ## Id sort directories #
-PFAM_DIR = ${ROOT_DIR}/PfamScan
+PFAM_DIR = PfamScan
 PFAM_SCAN_DATA = pfam_data
 
 # Output files's extensions #
@@ -35,14 +38,14 @@ GZ = gz
 ## Antybody seq analize extensions ##
 CLUSTER = clstr
 FASTA = fasta
-
+PFAM_OUT = out
 # Scripts #
 ## Antybody seq analize scripts ##
 READ_FRAGMENT = ${SCRIPTS}/read_fragment
 READ_CLUSTER = ${SCRIPTS}/readCluster
 MAKE_FASTA =${SCRIPTS}/makeFasta
 COMPARE_NUMBERING= ${SCRIPTS}/compareNumberingPdbCluster
-ALIGNER = muscle
+ALIGNER = mafft
 EXCLUDE_FILE = ${SCRIPTS}/excludeNoNNumbering
 CUT_NUMBERING = ${SCRIPTS}/cutNumbering
 ## Id sort scripts ##
@@ -53,6 +56,7 @@ DOWNLOAD_FILE = ${SCRIPTS}/byLinkDownload
 TRIM_EXTACTED = ${SCRIPTS}/trimExtracted
 IDENTIFY_SCHEME = ${SCRIPTS}/identifyScheme
 SORT_BY_SCHEME = ${SCRIPTS}/sortByScheme
+GREP_MOST_PROBABLE = ${SCRIPTS}/grepMostProbableSeq
 # Files #
 ## Id sort files ##
 PDB_SEQ_FILE = pdb_seqres.txt.gz
@@ -64,9 +68,9 @@ HMM_NAME := Pfam-A.hmm
 HMM := $(PFAM_SCAN_DATA)/${HMM_NAME}
 HMM_DAT_NAME := Pfam-A.hmm.dat
 HMM_DAT := $(PFAM_SCAN_DATA)/${HMM_DAT_NAME}
-EXTRACTED_FASTA = ${SCRIPTS_OUT}/extacted.${FASTA}
+EXTRACTED_FASTA = ${SCRIPTS_OUT}/extracted.${FASTA}
 TRIMMED_FASTA = ${SCRIPTS_OUT}/extractedTrimmed.${FASTA}
-PFAM_SCAN_OUTPUT = ${SCRIPTS_OUT}/${PFAM_SCAN_NAME}.${PFAM_OUT}
+PFAM_SCAN_OUTPUT = ${SCRIPTS_OUT}/pfam_scan.${PFAM_OUT}
 SORTED_IDS_FILE = ${SCRIPTS_OUT}/sorted_ids.${IDS_FILE}
 ## Antybody seq analize files ##
 LIGHT_CHAINS_ALIGNMENT = ${HEAVY_LIGHT_ALIGMENTS}/light_alignment.afa
@@ -99,14 +103,20 @@ ALIGNED_CLUSTERS_NAMES := $(shell ls ${CLUSTERS_BY_SCHEME})
 ALIGNED_CLUSTERS := $(addprefix ${CLUSTERS_BY_SCHEME}/, ${ALIGNED_CLUSTERS_NAMES})
 COMPARED_CLUSTERS := $(patsubst ${CLUSTERS_BY_SCHEME}/%.afa, ${CLUSTERS_COMPARE_BY_SCHEME}/%.tsv, ${ALIGNED_CLUSTERS})
 TRIMMED_CLUSTERS := $(patsubst ${CLUSTERS_BY_SCHEME}/%.afa, ${TRIMMED_BY_SCHEME_CLUSTERS}/%.tsv, ${ALIGNED_CLUSTERS})
+HMMS_CLUSTERS := $(patsubst ${CLUSTERS_BY_SCHEME}/%.afa, ${HMM_BY_SCHEME_CLUSTERS}/%.hmm, ${ALIGNED_CLUSTERS})
 # Links
 PDB_LINK = http://www.rcsb.org/pdb/files
 SEQ_FROM_PDB_LINK = https://files.wwpdb.org/pub/pdb/derived_data
 PFAM_DATA_LINK = https://ftp.ebi.ac.uk/pub/databases/Pfam/current_release
 
-all: ${TRIMMED_CLUSTERS} ${TRIMMED_FILES} ${COMPARE_FILES}
+.PRECIOUS: ${CLUSTERS_COMPARE_BY_SCHEME}/%.tsv ${GENERATED_BY_SCHEME_CLUSTERS}/%.fasta ${HMM_BY_SCHEME_CLUSTERS}/%.hmm
 
+all: ${TRIMMED_CLUSTERS} ${TRIMMED_FILES} ${COMPARE_FILES} ${HMMS_CLUSTERS}
+	
 ## Antybody seq analize
+
+${HMM_BY_SCHEME_CLUSTERS}/%.hmm:  ${CLUSTERS_BY_SCHEME}/%.afa
+	hmmbuild $@ $<
 	
 ${TRIMMED_BY_SCHEME_CLUSTERS}/%.tsv: ${CLUSTERS_COMPARE_BY_SCHEME}/%.tsv
 	./${CUT_NUMBERING} $< ${TRIMMED_BY_SCHEME_CLUSTERS}
@@ -134,7 +144,7 @@ ${NUMBERING_COMPARE}/%.tsv: ${ALIGMENT_BY_SCHEME}/%.afa
 	./${COMPARE_NUMBERING} $< ${DATA} ${NUMBERING_COMPARE}
 
 ${ALIGMENT_BY_SCHEME}/%.afa: ${FASTA_BY_SCHEME}/%.fasta
-	${ALIGNER} -align $< -output $@
+	${ALIGNER} --op 10 --ep 1 $< > $@
 	
 ${FASTA_BY_SCHEME}/%.fasta: ${ID_BY_SCHEME}/%.id
 	./${MAKE_FASTA} $@ $< ${DATA}
@@ -157,10 +167,11 @@ ${HEAVY_CHAINS_ALIGNMENT_COMPARE}: ${HEAVY_CHAINS_ALIGNMENT}
 	./${COMPARE_NUMBERING} $< ${DATA} ${HEAVY_LIGHT_COMPARE}
 	
 ${HEAVY_CHAINS_ALIGNMENT}: ${HEAVY_CHAINS_FASTA}
-	${ALIGNER} -align $< -output $@
+	${ALIGNER} --op 10 --ep 1 $< > $@
+
 
 ${LIGHT_CHAINS_ALIGNMENT}: ${LIGHT_CHAINS_FASTA}
-	${ALIGNER} -align $< -output $@
+	${ALIGNER} --op 10 --ep 1 $< > $@
 	
 ${HEAVY_CHAINS_FASTA}: ${IDS_WITH_NUMBERING_HEAVY}
 	./${MAKE_FASTA} $@ $< ${DATA}
@@ -187,8 +198,8 @@ update_id_file: ${SORTED_IDS_FILE}
 ${SORTED_IDS_FILE}: ${PFAM_SCAN_OUTPUT}
 	./${ID_FILTER} ${PDB_ID_FILE} $< $@
 
-${PFAM_SCAN_OUTPUT}: ${TRIMMED_FASTA} ${PFAM_DATA_FILES}
-	${PFAM_SCAN} -fasta $< -dir ${PFAM_SCAN_DATA} -outfile $@
+#${PFAM_SCAN_OUTPUT}: ${TRIMMED_FASTA} ${PFAM_DATA_FILES}
+#	${PFAM_SCAN} -fasta $< -dir ${PFAM_SCAN_DATA} -outfile $@
 
 ${TRIMMED_FASTA}: ${EXTRACTED_FASTA}
 	./${TRIM_EXTACTED} $< $@
@@ -213,5 +224,6 @@ ${HMM}:
 ${HMM_DAT}:
 	./${DOWNLOAD_FILE} ${PFAM_SCAN_DATA} ${PFAM_SCAN_DATA} ${PFAM_DATA_LINK} ${HMM_DAT_NAME}.${GZ}
 	gunzip ${HMM_DAT}.${GZ}
+
 
 

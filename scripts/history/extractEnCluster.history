@@ -1,1 +1,0 @@
-./extractEnCluster ../rcsb_pdb_ids_20240228040928.txt ../pdb_seqres.txt.gz ../

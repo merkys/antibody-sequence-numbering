@@ -1,0 +1,206 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use File::Basename;
+use File::Temp qw(tempfile);
+sub writeSeqFromTriimedNumbering
+{
+	my ($numbering_alignment) = @_;
+	my %sequences =();
+	open(my $fh,'<', $numbering_alignment)
+	or die " Could not open file: '$numbering_alignment' $!";
+	
+	while(my $line = <$fh>)
+	{
+		if($line =~/(.{6})\tseq\t(.+)/)
+		{
+			my $seq_name = $1;
+			my $sequence = $2;
+			$sequence =~ s/[\t\s]//g;
+    			$sequences{"$seq_name"} = $sequence;
+		}
+	}
+	return \%sequences
+}
+
+sub makeTrimmedNumberingDict
+{
+	my ($numbering_alignment) = @_;
+	my %dict;
+	open(my $fh,'<', $numbering_alignment)
+	or die " Could not open file: '$numbering_alignment' $!";
+	
+	while(my $line = <$fh>)
+	{
+		if($line =~/.{6}\tseq\t(.+)/)
+		{
+			my $sequence = $1;
+			$sequence =~ s/[\t\s]//g;
+    			my @chars = split("", $sequence);
+    			for(my $i = 1; $i <= @chars; $i++)
+    			{
+    				$dict{$i}{"seq"}{$chars[$i -1]}++;
+    			}
+		}
+		if($line =~/\tnum\t(.+)/)
+		{
+			my $numbering = $1;
+    			my @numbers = split("\t", $numbering);
+    			for(my $i = 1; $i <= @numbers; $i++)
+    			{
+    				$dict{$i}{"numbering"}{$numbers[$i -1]}++;
+    			}
+		}
+	}
+	return \%dict;
+}
+
+sub findOffset {
+	my ($input_seq, $current_index, $max_offset,$seq_ref) = @_;
+
+	my $offset = 0;
+	my $target2 = substr($input_seq, $current_index, $max_offset + 2);
+	my @targets;
+	for my $key (keys %{$seq_ref})
+	{
+		my $target = substr($seq_ref->{$key}, $current_index, 3);
+		push @targets, $target;
+	}
+	my $fragments_fasta ='';
+	my $counter = 0;
+	for my $target (@targets)
+	{
+		$fragments_fasta .= ">fragment_$counter\n$target\n";
+		$counter++; 
+	}
+	my ($tf_h, $filename) = tempfile();
+	print $tf_h $fragments_fasta;
+	print $tf_h ">target\n$target2\n";
+	
+	my $maft_responce = qx(mafft --quiet --amino --localpair $filename);
+	my @responces = split(">", $maft_responce);
+	pop @responces;
+	shift @responces;
+	my @responce_sequences;
+	for my $local (@responces)
+	{
+		$local =~ /^(.+?)\n(.+)$/s;
+		my $seq = $2;
+		chomp($seq);
+		push @responce_sequences, $seq;
+	}
+	my $min_gaps = length($input_seq);
+	my $min_seq;
+
+	for my $seq (@responce_sequences)
+	{
+		if ($seq =~ /^(-*)[A-Za-z]+/)
+		{
+			my $gaps = length($1);
+			if ($gaps < $min_gaps)
+			{
+			    $min_gaps = $gaps;
+			    $min_seq = $seq;
+			}
+	   	 }
+	}
+	$offset = $min_gaps;
+	close $tf_h;
+	unlink $filename;
+	return $offset;
+}
+
+sub printDict {
+    my ($dict_ref) = @_;
+
+    foreach my $index (sort {$a <=> $b} keys %$dict_ref) {
+        print "Index $index:\n";
+        foreach my $type (sort keys %{$dict_ref->{$index}}) {
+            print "\tType: $type\n";
+            foreach my $value (sort keys %{$dict_ref->{$index}{$type}}) {
+                my $count = $dict_ref->{$index}{$type}{$value};
+                print "\t\t$value: $count\n";
+            }
+        }
+    }
+}
+
+my %schemes = (
+		'kabat' => {
+			'light' => {
+					'27' => 6,
+					'95' => 6,
+					'106' => 1
+				},
+			'heavy' => {
+					'35' => 2,
+					'52' => 3,
+					'82' => 3,
+					'100' => 11
+				}
+			}
+		);
+
+
+
+my $files_dir = $ARGV[0];
+my $seq = $ARGV[1];
+my @hmms = glob("$files_dir/hmms_clusters/*.hmm");
+
+my $hmmsearch_responce='';
+my $best_value = 1000;
+my $best_profile = '';
+for my $hmm (@hmms)
+{
+	$hmmsearch_responce = qx(hmmsearch $hmm $seq);
+	my @responce_lines = split("\n", $hmmsearch_responce);
+	$responce_lines[14] =~ /\s+(\S+)\s+/;
+	my $full_seq_E_value = $1;
+	if($best_value > $full_seq_E_value)
+	{
+		$best_value = $full_seq_E_value;
+		$best_profile = basename($hmm);
+		$best_profile =~ s/\.[^.]+$//;
+	}
+}
+
+my $new_alignment= qx(mafft --quiet --amino --add $seq $files_dir/clusters_align/$best_profile.afa);
+my $dict_ref = makeTrimmedNumberingDict("$files_dir/trimmedNumbering_clusters/$best_profile.tsv");
+my $seq_ref = writeSeqFromTriimedNumbering("$files_dir/trimmedNumbering_clusters/$best_profile.tsv");
+
+my @sequences = split('>', $new_alignment);
+my $input_fasta = $sequences[-1];
+$input_fasta =~ /^(.+?)\n(.+)$/s;
+
+my $input_seq =  $2;
+
+$input_seq =~ s/\n//g;
+my $seq_type = "heavy";
+my $seq_scheme = "kabat";
+my @seq = split("",$input_seq);
+my @original_seq = @seq;
+
+my @numbering;
+for (my $i = 1; $i < @original_seq; $i++)
+{
+	push @numbering, $i;
+	if(exists $schemes{$seq_scheme}{$seq_type}{$i})
+	{
+		my $offset = findOffset($input_seq,
+					$i,
+					$schemes{$seq_scheme}{$seq_type}{$i},
+					$seq_ref);
+		for(my $j = 0; $j < $offset; $j++)
+		{
+			push @numbering, $i . chr(65 + $j);
+		}
+		splice(@seq, $i, $offset);
+		substr($input_seq, $i, $offset, "");
+	}
+}
+
+for (my $i = 0; $i < @original_seq; $i++)
+{
+	print $original_seq[$i] . "\t" . $numbering[$i] . "\n";
+}
