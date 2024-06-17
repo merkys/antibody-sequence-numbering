@@ -60,13 +60,26 @@ sub findOffset {
 	my ($input_seq, $current_index, $max_offset,$seq_ref) = @_;
 
 	my $offset = 0;
-	my $target2 = substr($input_seq, $current_index, $max_offset + 2);
+	my $input_target = substr($input_seq, $current_index, $max_offset +1);
+	my @input_dict = split("",$input_target );
 	my @targets;
+	print "current index: $current_index\n";
+	print "target\n$input_target\n";
 	for my $key (keys %{$seq_ref})
 	{
-		my $target = substr($seq_ref->{$key}, $current_index, 3);
-		push @targets, $target;
+		my $target = substr($seq_ref->{$key}, $current_index, 1);
+		for my $char (@input_dict)
+		{
+			
+			if($char eq $target)
+			{
+				push @targets, $target;
+				last;
+			}
+		}
+		print "$key: $target \n";
 	}
+	return 0 if @targets == 0;
 	my $fragments_fasta ='';
 	my $counter = 0;
 	for my $target (@targets)
@@ -74,11 +87,13 @@ sub findOffset {
 		$fragments_fasta .= ">fragment_$counter\n$target\n";
 		$counter++; 
 	}
+	
+	
 	my ($tf_h, $filename) = tempfile();
 	print $tf_h $fragments_fasta;
-	print $tf_h ">target\n$target2\n";
+	print $tf_h ">target\n$input_target\n";
 	
-	my $maft_responce = qx(mafft --quiet --amino --localpair $filename);
+	my $maft_responce = qx(mafft --quiet --amino --lexp 0.5 --localpair $filename);
 	my @responces = split(">", $maft_responce);
 	pop @responces;
 	shift @responces;
@@ -87,43 +102,46 @@ sub findOffset {
 	{
 		$local =~ /^(.+?)\n(.+)$/s;
 		my $seq = $2;
+		print "responce: $seq";
 		chomp($seq);
 		push @responce_sequences, $seq;
 	}
+	print "\n";
 	my $min_gaps = length($input_seq);
-	my $min_seq;
-
+	my $mins_seq;
+	my $max_resu =0;
 	for my $seq (@responce_sequences)
 	{
-		if ($seq =~ /^(-*)[A-Za-z]+/)
+		if ($seq =~ /^(-*)([A-Za-z]+)/)
 		{
 			my $gaps = length($1);
-			if ($gaps < $min_gaps)
+			my $local = $2;
+			$local =~s/-//;
+			
+			my $local_resu = length($local);
+			
+			if($local_resu == $max_resu)
 			{
-			    $min_gaps = $gaps;
-			    $min_seq = $seq;
+				if ($gaps > $min_gaps)
+				{
+			     		$min_gaps = $gaps;
+			     		$max_resu = $local_resu;
+				}
 			}
+			
+			if($local_resu > $max_resu)
+			{
+				$min_gaps = $gaps;
+			     	$max_resu = $local_resu;
+			}
+			
 	   	 }
 	}
+	print $min_gaps . "\n";
 	$offset = $min_gaps;
 	close $tf_h;
 	unlink $filename;
 	return $offset;
-}
-
-sub printDict {
-    my ($dict_ref) = @_;
-
-    foreach my $index (sort {$a <=> $b} keys %$dict_ref) {
-        print "Index $index:\n";
-        foreach my $type (sort keys %{$dict_ref->{$index}}) {
-            print "\tType: $type\n";
-            foreach my $value (sort keys %{$dict_ref->{$index}{$type}}) {
-                my $count = $dict_ref->{$index}{$type}{$value};
-                print "\t\t$value: $count\n";
-            }
-        }
-    }
 }
 
 my %schemes = (
@@ -148,6 +166,14 @@ my $files_dir = $ARGV[0];
 my $seq = $ARGV[1];
 my @hmms = glob("$files_dir/hmms_clusters/*.hmm");
 
+open(my $seq_h,'<', $seq)
+	or die " Could not open file: '$seq' $!";
+
+my $seq_id = <$seq_h>;
+my $input_seq = <$seq_h>;
+chomp($input_seq);
+my @input_seq = split("", $input_seq);
+
 my $hmmsearch_responce='';
 my $best_value = 1000;
 my $best_profile = '';
@@ -165,25 +191,18 @@ for my $hmm (@hmms)
 	}
 }
 
-my $new_alignment= qx(mafft --quiet --amino --add $seq $files_dir/clusters_align/$best_profile.afa);
-my $dict_ref = makeTrimmedNumberingDict("$files_dir/trimmedNumbering_clusters/$best_profile.tsv");
+print $best_profile . "\n";
 my $seq_ref = writeSeqFromTriimedNumbering("$files_dir/trimmedNumbering_clusters/$best_profile.tsv");
 
-my @sequences = split('>', $new_alignment);
-my $input_fasta = $sequences[-1];
-$input_fasta =~ /^(.+?)\n(.+)$/s;
 
-my $input_seq =  $2;
-
-$input_seq =~ s/\n//g;
 my $seq_type = "heavy";
 my $seq_scheme = "kabat";
-my @seq = split("",$input_seq);
-my @original_seq = @seq;
+my @output_seq_copy = @input_seq;
 
 my @numbering;
-for (my $i = 1; $i < @original_seq; $i++)
+for (my $i = 1; $i <= @input_seq; $i++)
 {
+
 	push @numbering, $i;
 	if(exists $schemes{$seq_scheme}{$seq_type}{$i})
 	{
@@ -195,12 +214,12 @@ for (my $i = 1; $i < @original_seq; $i++)
 		{
 			push @numbering, $i . chr(65 + $j);
 		}
-		splice(@seq, $i, $offset);
+		splice(@input_seq, $i, $offset);
 		substr($input_seq, $i, $offset, "");
 	}
 }
 
-for (my $i = 0; $i < @original_seq; $i++)
+for (my $i = 0; $i < @output_seq_copy; $i++)
 {
-	print $original_seq[$i] . "\t" . $numbering[$i] . "\n";
+	print $output_seq_copy[$i] . "\t" . $numbering[$i] . "\n";
 }
