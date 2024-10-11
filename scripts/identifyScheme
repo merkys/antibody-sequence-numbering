@@ -77,6 +77,7 @@ if( $opt->pdb ) {
         push @numbers, $resnum . $icode;
     }
     my $schemes = schemes_from_numbers( @numbers );
+    $schemes = schemes_by_category( @numbers ) unless $schemes && @$schemes;
     print @$schemes;
 } else {
     while( <> ) {
@@ -87,13 +88,14 @@ if( $opt->pdb ) {
         chomp;
         my( undef, undef, @numbers ) = split /\s+/, $_;
         my $schemes = schemes_from_numbers( @numbers );
+        $schemes = schemes_by_category( @numbers ) unless $schemes && @$schemes;
         print $id, @$schemes;
     }
 }
 
 sub schemes_from_numbers
 {
-    my( @numbers ) = @_;
+    my @numbers = @_;
     my $schemes;
 
     for (@numbers) {
@@ -102,21 +104,12 @@ sub schemes_from_numbers
         $schemes *= $pos{$_};
     }
 
-    if( !$schemes || !@$schemes ) {
-        # Some guesswork
-        if( all { $_ =~ /^[0-9]+$/ } @numbers ) {
-            $schemes = set( 'UNKNOWN_NUMBERED' );
-        } else {
-            $schemes = set( 'UNKNOWN' );
-        }
-    }
-
     return $schemes;
 }
 
 sub schemes_from_aa
 {
-    my( @aa ) = @_;
+    my @aa = @_;
     my $schemes;
 
     for (@aa) {
@@ -133,4 +126,12 @@ sub schemes_from_aa
     }
 
     return $schemes;
+}
+
+sub schemes_by_category
+{
+    my @numbers = @_;
+
+    return set( 'UNKNOWN_NUMBERED' ) if all { $_ =~ /^[0-9]+$/ } @numbers;
+    return set( 'UNKNOWN' );
 }
