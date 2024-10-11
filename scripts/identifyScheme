@@ -46,13 +46,10 @@ if( $opt->pdb ) {
     my $schemes;
     while( <> ) {
         next unless /^ATOM/;
-        my $residue = int substr $_, 22, 4;
+        my $resnum = int substr $_, 22, 4;
         my $icode = substr $_, 26, 1;
-        next if $icode eq ' ';
-        my $key = $residue . $icode;
-        next unless exists $pos{$key};
-        $schemes  = $pos{$key} unless $schemes;
-        $schemes *= $pos{$key};
+        $icode = '' if $icode eq ' ';
+        $schemes = schemes_accommodate( $schemes, $resnum . $icode );
     }
     if( $schemes && @$schemes ) {
         print @$schemes;
@@ -69,10 +66,8 @@ if( $opt->pdb ) {
         my( undef, undef, @numbers ) = split /\s+/, $_;
 
         my $schemes;
-        for my $key (keys %pos) {
-            next unless grep { $_ eq $key } @numbers;
-            $schemes  = $pos{$key} unless $schemes;
-            $schemes *= $pos{$key};
+        for (@numbers) {
+            $schemes = schemes_accommodate( $schemes, $_ );
         }
 
         if( $schemes && @$schemes ) {
@@ -83,4 +78,15 @@ if( $opt->pdb ) {
             print $id, 'UNKNOWN';
         }
     }
+}
+
+sub schemes_accommodate
+{
+    my( $schemes, $resnum ) = @_;
+    return $schemes unless exists $pos{$resnum};
+
+    $schemes  = $pos{$resnum} unless $schemes;
+    $schemes *= $pos{$resnum};
+
+    return $schemes;
 }
