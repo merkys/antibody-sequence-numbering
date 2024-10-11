@@ -1,12 +1,9 @@
 #!/usr/bin/perl
 
-# Detects the numbering scheme used in *.tsv files, based on the explanations of the numbering schemes present in:
-# Dondelinger et al. (2018), doi:10.3389/fimmu.2018.02278
-# The numbering comparison table is given in S1 of the supplementary material.
-
 use strict;
 use warnings;
 
+use Getopt::Long::Descriptive;
 use Set::Object qw( set );
 
 local $, = "\t";
@@ -36,27 +33,54 @@ my %pos = (
     '52A'  => set( 'L_Martin', 'H_Kabat', 'H_Chothia', 'H_Martin' ),
 );
 
-LINE:
-while( <> ) {
-    next if /^#/;
-    next unless /^(\S+)\s+seq\s+/;
-    my $id = $1;
-    $_ = <>;
-    chomp;
-    my( undef, undef, @numbers ) = split /\s+/, $_;
+my( $opt ) = describe_options( <<"END" . 'OPTIONS',
+DESCRIPTION
+    Detects the numbering scheme used in TSV (default) or PDB files, based on the explanations of the numbering schemes present in:
+    Dondelinger et al. (2018), doi:10.3389/fimmu.2018.02278
+    The numbering comparison table is given in S1 of the supplementary material.
+END
+    [ 'pdb', 'process PDB format input' ],
+);
 
+if( $opt->pdb ) {
     my $schemes;
-    for my $key (keys %pos) {
-        next unless grep { $_ eq $key } @numbers;
-        $schemes =  $pos{$key} unless $schemes;
+    while( <> ) {
+        next unless /^ATOM/;
+        my $residue = int substr $_, 22, 4;
+        my $icode = substr $_, 26, 1;
+        next if $icode eq ' ';
+        my $key = $residue . $icode;
+        next unless exists $pos{$key};
+        $schemes  = $pos{$key} unless $schemes;
         $schemes *= $pos{$key};
     }
-
     if( $schemes && @$schemes ) {
-        print $id, @$schemes;
-    } elsif( grep { $_ =~ /[a-z]/i } @numbers ) {
-        print $id, 'UNKNOWN_NUMBERED', grep { $_ =~ /[a-z]/i } @numbers;
+        print @$schemes;
     } else {
-        print $id, 'UNKNOWN';
+        print 'UNKNOWN';
+    }
+} else {
+    while( <> ) {
+        next if /^#/;
+        next unless /^(\S+)\s+seq\s+/;
+        my $id = $1;
+        $_ = <>;
+        chomp;
+        my( undef, undef, @numbers ) = split /\s+/, $_;
+
+        my $schemes;
+        for my $key (keys %pos) {
+            next unless grep { $_ eq $key } @numbers;
+            $schemes  = $pos{$key} unless $schemes;
+            $schemes *= $pos{$key};
+        }
+
+        if( $schemes && @$schemes ) {
+            print $id, @$schemes;
+        } elsif( grep { $_ =~ /[a-z]/i } @numbers ) {
+            print $id, 'UNKNOWN_NUMBERED', grep { $_ =~ /[a-z]/i } @numbers;
+        } else {
+            print $id, 'UNKNOWN';
+        }
     }
 }
