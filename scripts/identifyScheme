@@ -96,11 +96,9 @@ if( $opt->pdb ) {
 
         my $schemes = schemes_from_numbers( @numbers );
         if( $opt->by_aa ) {
-            my $schemes_from_aa = schemes_from_aa( pairwise { [ $a, $b ] } @aa, @numbers );
-            $schemes = set() if !$schemes && $schemes_from_aa;
-            $schemes *= $schemes_from_aa;
+            $schemes = schemes_from_aa( $schemes, pairwise { [ $a, $b ] } @aa, @numbers );
         }
-        $schemes = schemes_by_category( @numbers ) unless $schemes && @$schemes;
+        $schemes = schemes_by_category( @numbers ) unless @$schemes;
         print $id, @$schemes;
     }
 }
@@ -121,20 +119,20 @@ sub schemes_from_numbers
 
 sub schemes_from_aa
 {
+    my $schemes = shift;
     my @aa = @_;
-    my $schemes;
+
+    return $schemes if $schemes && !@$schemes;
+    $schemes = set( map { @$_ } map { values %$_ } values %pos_by_aa ) unless $schemes;
 
     for (@aa) {
         my( $aa, $pos ) = @$_;
         next unless exists $pos_by_aa{$pos};
 
-        if( !exists $pos_by_aa{$pos}->{$aa} ) {
-            $schemes = set();
-            next;
+        for (keys %{$pos_by_aa{$pos}}) {
+            next if $_ eq $aa;
+            $schemes -= $pos_by_aa{$pos}->{$_};
         }
-
-        $schemes  = $pos_by_aa{$pos}->{$aa} unless $schemes;
-        $schemes *= $pos_by_aa{$pos}->{$aa};
     }
 
     return $schemes;
