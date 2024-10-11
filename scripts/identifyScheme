@@ -82,7 +82,7 @@ sub schemes_from_numbers
         if( all { $_ =~ /^[0-9]+$/ } @numbers ) {
             $schemes = set( 'UNKNOWN_NUMBERED' );
         } else {
-            $schemes = set( 'NUMBERED' );
+            $schemes = set( 'UNKNOWN' );
         }
     }
 
