@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Getopt::Long::Descriptive;
+use List::Util qw( all );
 use Set::Object qw( set );
 
 local $, = "\t";
