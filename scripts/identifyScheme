@@ -43,19 +43,16 @@ END
 );
 
 if( $opt->pdb ) {
-    my $schemes;
+    my @numbers;
     while( <> ) {
         next unless /^ATOM/;
         my $resnum = int substr $_, 22, 4;
         my $icode = substr $_, 26, 1;
         $icode = '' if $icode eq ' ';
-        $schemes = schemes_accommodate( $schemes, $resnum . $icode );
+        push @numbers, $resnum . $icode;
     }
-    if( $schemes && @$schemes ) {
-        print @$schemes;
-    } else {
-        print 'UNKNOWN';
-    }
+    my $schemes = schemes_from_numbers( @numbers );
+    print @$schemes;
 } else {
     while( <> ) {
         next if /^#/;
@@ -64,29 +61,30 @@ if( $opt->pdb ) {
         $_ = <>;
         chomp;
         my( undef, undef, @numbers ) = split /\s+/, $_;
-
-        my $schemes;
-        for (@numbers) {
-            $schemes = schemes_accommodate( $schemes, $_ );
-        }
-
-        if( $schemes && @$schemes ) {
-            print $id, @$schemes;
-        } elsif( grep { $_ =~ /[a-z]/i } @numbers ) {
-            print $id, 'UNKNOWN_NUMBERED', grep { $_ =~ /[a-z]/i } @numbers;
-        } else {
-            print $id, 'UNKNOWN';
-        }
+        my $schemes = schemes_from_numbers( @numbers );
+        print $id, @$schemes;
     }
 }
 
-sub schemes_accommodate
+sub schemes_from_numbers
 {
-    my( $schemes, $resnum ) = @_;
-    return $schemes unless exists $pos{$resnum};
+    my( @numbers ) = @_;
+    my $schemes;
 
-    $schemes  = $pos{$resnum} unless $schemes;
-    $schemes *= $pos{$resnum};
+    for (@numbers) {
+        next unless exists $pos{$_};
+        $schemes  = $pos{$_} unless $schemes;
+        $schemes  = $pos{$_};
+    }
+
+    if( !$schemes || !@$schemes ) {
+        # Some guesswork
+        if( all { $_ =~ /^[0-9]+$/ } @numbers ) {
+            $schemes = set( 'UNKNOWN_NUMBERED' );
+        } else {
+            $schemes = set( 'NUMBERED' );
+        }
+    }
 
     return $schemes;
 }
