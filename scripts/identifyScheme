@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Getopt::Long::Descriptive;
+use List::MoreUtils qw( pairwise );
 use List::Util qw( all );
 use Set::Object qw( set );
 
@@ -65,8 +66,10 @@ DESCRIPTION
     The numbering comparison table is given in S1 of the supplementary material.
 END
     [ 'pdb', 'process PDB format input' ],
+    [ 'by-aa', 'respect aminoacids at conservative positions' ],
 );
 
+# $schemes: undef = "I do not know", empty = "none of the known schemes"
 if( $opt->pdb ) {
     my @numbers;
     while( <> ) {
@@ -82,12 +85,21 @@ if( $opt->pdb ) {
 } else {
     while( <> ) {
         next if /^#/;
-        next unless /^(\S+)\s+seq\s+/;
-        my $id = $1;
+        next unless /^\S+\s+seq\s+/;
+
+        chomp;
+        my( $id, undef, @aa ) = split /\s+/, $_;
+
         $_ = <>;
         chomp;
         my( undef, undef, @numbers ) = split /\s+/, $_;
+
         my $schemes = schemes_from_numbers( @numbers );
+        if( $opt->by_aa ) {
+            my $schemes_from_aa = schemes_from_aa( pairwise { [ $a, $b ] } @aa, @numbers );
+            $schemes = set() if !$schemes && $schemes_from_aa;
+            $schemes *= $schemes_from_aa;
+        }
         $schemes = schemes_by_category( @numbers ) unless $schemes && @$schemes;
         print $id, @$schemes;
     }
