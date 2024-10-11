@@ -34,28 +34,27 @@ my %pos = (
 );
 
 my %pos_by_aa = (
-    'C22'  => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ),
-    'C23'  => set( 'L_Kabat', 'L_Chothia', 'L_Martin', 'IMGT' ),
+     22 => { C => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ) },
+     23 => { C => set( 'L_Kabat', 'L_Chothia', 'L_Martin', 'IMGT' ) },
 
-    'W35'  => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ),
-    'W36'  => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ),
-    'W41'  => set( 'IMGT' ),
+     35 => { W => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ) },
+     36 => { W => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ) },
+     41 => { W => set( 'IMGT' ) },
 
-    'C88'  => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ),
-    'C92'  => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ),
-    'C104' => set( 'IMGT' ),
+     88 => { C => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ) },
+     92 => { C => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ) },
+    104 => { C => set( 'IMGT' ) },
 
-    'F98'  => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ),
-    'F103' => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ),
-    'F118' => set( 'IMGT' ),
+     98 => { F => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ),
+             W => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ) },
+    103 => { F => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ),
+             W => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ) },
+    118 => { F => set( 'IMGT' ),
+             W => set( 'IMGT' ) },
 
-    'W98'  => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ),
-    'W103' => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ),
-    'W118' => set( 'IMGT' ),
-
-    'G99'  => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ),
-    'W104' => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ),
-    'W119' => set( 'IMGT' ),
+     99 => { G => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ) },
+    104 => { G => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ) },
+    119 => { W => set( 'IMGT' ) },
 );
 
 my( $opt ) = describe_options( <<"END" . 'OPTIONS',
@@ -99,7 +98,7 @@ sub schemes_from_numbers
     for (@numbers) {
         next unless exists $pos{$_};
         $schemes  = $pos{$_} unless $schemes;
-        $schemes  = $pos{$_};
+        $schemes *= $pos{$_};
     }
 
     if( !$schemes || !@$schemes ) {
@@ -109,6 +108,27 @@ sub schemes_from_numbers
         } else {
             $schemes = set( 'UNKNOWN' );
         }
+    }
+
+    return $schemes;
+}
+
+sub schemes_from_aa
+{
+    my( @aa ) = @_;
+    my $schemes;
+
+    for (@aa) {
+        my( $aa, $pos ) = @$_;
+        next unless exists $pos_by_aa{$pos};
+
+        if( !exists $pos_by_aa{$pos}->{$aa} ) {
+            $schemes = set();
+            next;
+        }
+
+        $schemes  = $pos_by_aa{$pos}->{$aa} unless $schemes;
+        $schemes *= $pos_by_aa{$pos}->{$aa};
     }
 
     return $schemes;
