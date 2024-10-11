@@ -33,6 +33,31 @@ my %pos = (
     '52A'  => set( 'L_Martin', 'H_Kabat', 'H_Chothia', 'H_Martin' ),
 );
 
+my %pos_by_aa = (
+    'C22'  => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ),
+    'C23'  => set( 'L_Kabat', 'L_Chothia', 'L_Martin', 'IMGT' ),
+
+    'W35'  => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ),
+    'W36'  => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ),
+    'W41'  => set( 'IMGT' ),
+
+    'C88'  => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ),
+    'C92'  => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ),
+    'C104' => set( 'IMGT' ),
+
+    'F98'  => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ),
+    'F103' => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ),
+    'F118' => set( 'IMGT' ),
+
+    'W98'  => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ),
+    'W103' => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ),
+    'W118' => set( 'IMGT' ),
+
+    'G99'  => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ),
+    'W104' => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ),
+    'W119' => set( 'IMGT' ),
+);
+
 my( $opt ) = describe_options( <<"END" . 'OPTIONS',
 DESCRIPTION
     Detects the numbering scheme used in TSV (default) or PDB files, based on the explanations of the numbering schemes present in:
