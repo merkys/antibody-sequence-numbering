@@ -1,0 +1,343 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use File::Basename;
+use Getopt::Long;
+sub getAnarciNumberingInfo
+{
+	# Get variable region length based on ANARCI out file
+	# Get numbering seq
+	my ($file_name) = @_;
+	open(my $anarci_fh,'<', $file_name)
+		or die " Could not open file: '$file_name' $!";
+		
+	my $anarciLength = <$anarci_fh>;
+	chomp($anarciLength);
+	$anarciLength =~ /#.+\s(\d+)/;
+	my $length = $1;
+	my @anarciSeq;
+	while(my $line = <$anarci_fh>)
+	{
+		chomp($line);
+		push @anarciSeq, $line;
+	}
+	
+	close($anarci_fh);
+	return $length, @anarciSeq;
+}
+
+sub spliceNumberingArray
+{
+	# We take the array of data produced by our program and trim it
+	# to the length of the ANARCI array. If the original array's length
+	#is less than the length of the ANARCI array, we add "_" 
+	#with the flag M (modified) until the lengths of the arrays become equal
+	my ($array_ref, $length) = @_;
+	while(scalar(@$array_ref) < $length)
+	{
+		push @$array_ref, "_\tM\n"; 
+	}
+	return map { s/\n//g; $_ } @$array_ref[0..$length-1];
+}
+
+sub getCdrsPosLength
+{
+	my ($array_ref) =@_;
+	my @numberedRegions;
+	my $region_start = undef;
+	my $region_length =0;
+	for( my $i =0; $i < scalar(@$array_ref); $i++)
+	{
+		$region_start = $$array_ref[$i-1] if $$array_ref[$i] =~ /[A-Z]\t\d+[A-Z]$/
+									&& !$region_start;
+		$region_length++ if $$array_ref[$i] =~ /[A-Z]\t\d+[A-Z]$/
+									&& $region_start;
+		
+		if($$array_ref[$i] =~/[A-Z]\t\d+$/ && $region_start)
+		{
+			push @numberedRegions, {"start" => $region_start,
+						"end" => $$array_ref[$i],
+						"length" => $region_length};
+			$region_start = undef;
+			$region_length = 0;
+		}
+	}
+	return @numberedRegions;
+}
+
+sub countAbsoluteMismatch
+{
+	my ($anarci_array_ref, $my_array_ref) = @_;
+	my $mismatch = 0;
+	for(my $i = 0; $i < scalar(@$anarci_array_ref); $i++)
+	{
+		$mismatch++ if @$anarci_array_ref[$i] ne @$my_array_ref[$i];
+	}
+	return sprintf("%.3f", $mismatch / scalar(@$anarci_array_ref));
+}
+
+sub compareCdrsRegions
+{
+	my ($anarciCdrs, $myCrds) = @_;
+	my $anarciRegionsCount = scalar(@$anarciCdrs);
+	my $myRegionsCount = scalar(@$myCrds);
+	
+	my $refCounts = $anarciRegionsCount;
+	$refCounts = $myRegionsCount if $myRegionsCount > $anarciRegionsCount;
+	my @cdrsCompare;
+	for(my $i =0; $i < $refCounts; $i++)
+	{
+		if(!$$anarciCdrs[$i] && $$myCrds[$i])
+		{
+			$cdrsCompare[$i] = {
+					"Results" => "ANARCI define less CDRs regions",
+					"Start" => $$myCrds[$i]->{start},
+					"End" => $$myCrds[$i]->{end},
+					"Length" => $$myCrds[$i]->{length}
+					};
+			next;
+		}
+		elsif($$anarciCdrs[$i] && !$$myCrds[$i])
+		{
+			$cdrsCompare[$i] = {
+					"Results" => "ANARCI define more CDRs regions",
+					"Start" => $$anarciCdrs[$i]->{start},
+					"End" => $$anarciCdrs[$i]->{end},
+					"Length" => $$anarciCdrs[$i]->{length}
+					};
+			next;
+		}
+		
+		if($$anarciCdrs[$i]->{start}
+			ne $$myCrds[$i]->{start})
+		{
+			$cdrsCompare[$i][0] = {
+					"Target" => "Start",
+					"Results" => "Different result",
+					"Anarci" => $$anarciCdrs[$i]->{start},
+					"My" => $$myCrds[$i]->{start}
+					};
+		}
+		else
+		{
+			$cdrsCompare[$i][0] = {
+					"Target" => "Start",
+					"Results" => "Same result",
+					"Anarci" => $$anarciCdrs[$i]->{start},
+					"My" => $$myCrds[$i]->{start}
+					};
+		}
+		
+		if($$anarciCdrs[$i]->{end}
+			ne $$myCrds[$i]->{end})
+		{
+			$cdrsCompare[$i][1] = {
+					"Target" => "End",
+					"Results" => "Different result",
+					"Anarci" => $$anarciCdrs[$i]->{end},
+					"My" => $$myCrds[$i]->{end}
+					};
+		}
+		else
+		{
+			$cdrsCompare[$i][1] = {
+					"Target" => "End",
+					"Results" => "Same result",
+					"Anarci" => $$anarciCdrs[$i]->{end},
+					"My" => $$myCrds[$i]->{end}
+					};
+		}
+		
+		if($$anarciCdrs[$i]->{length}
+			!= $$myCrds[$i]->{length})
+		{
+			$cdrsCompare[$i][2] = {
+					"Target" => "Length",
+					"Results" => "Different result",
+					"Anarci" => $$anarciCdrs[$i]->{length},
+					"My" => $$myCrds[$i]->{length}
+					};
+		}
+		else
+		{
+			$cdrsCompare[$i][2] = {
+					"Target" => "Length",
+					"Results" => "Same result",
+					"Anarci" => $$anarciCdrs[$i]->{length},
+					"My" => $$myCrds[$i]->{length}
+					};
+		}
+	}
+	
+	return @cdrsCompare;
+}
+
+sub usage
+{
+    print <<"END_USAGE";
+Usage: $0 [options]
+Options:
+    --outFormat | -of  : Output format (tsv or json) [default: tsv]
+    --refFile   | -rf  : Reference file (required)
+    --usage     | -u   : Show this usage message
+
+Example:
+    $0 --outFormat json --refFile fasta.out
+
+Notes:
+    - The outFormat parameter only supports 'tsv' or 'json'.
+    - You must specify a valid reference file using --refFile or -rf.
+    - Currently, the script does not support specifying an input file explicitly
+    - Data is read exclusively from STDIN.
+END_USAGE
+    exit(1);
+}
+
+sub tsvOut
+{
+	my ($cdrsCompareLink, $seqName) = @_;
+	my $index =1;
+	my $RegionStart = "ResultS\tAnarciAcS\tAnarciPosS\tProgrammAcS\tProgrammPoS";
+	my $RegionEnd = "ResultE\ttAnarciAcE\tAnarciPosE\tProgrammAcE\tProgrammPosE";
+	my $RegionLength = "ResultL\tAnarciL\tProgrammL";
+	my $mismatchedRegions = "MismathedFlag\tResultM\tStartAcM\tStartPosM\tEndAcM\tEndPoSM\tLengthM";
+	print "SeqName\tInsertion region\t$RegionStart\t$RegionEnd\t$RegionLength\t$mismatchedRegions\t\n";
+	foreach my $result (@$cdrsCompareLink)
+	{
+		print $seqName . "\t";
+		print $index . "\t";
+		$index++;
+		if (ref($result) eq 'HASH')
+		{
+			print ("none\t" x 13);
+			print "1\t";
+			print $result->{Results} . "\t";
+			my $start = $result->{Start};
+			$start =~ /([A-Z-])\t(\d+)/;
+			print $1 . "\t" . $2 . "\t";
+			my $end = $result->{End};
+			$end =~ /([A-Z-])\t(\d+)/;
+			print $1 . "\t" . $2 . "\t";
+			print $result->{Length} . "\n";
+		}
+		else
+		{
+			print @$result[0]->{Results} . "\t";
+			my $startAnarci = @$result[0]->{Anarci};
+			$startAnarci =~ /([A-Z-])\t(\d+)/;
+			print $1 . "\t" . $2 . "\t";
+			my $startMy = @$result[0]->{My};
+			$startMy =~ /([A-Z-])\t(\d+)/;
+			print $1 . "\t" . $2 . "\t";
+			
+			print @$result[1]->{Results} . "\t";
+			my $endAnarci = @$result[1]->{Anarci};
+			$endAnarci =~ /([A-Z-])\t(\d+)/;
+			print $1 . "\t" . $2 . "\t";
+			my $endtMy = @$result[1]->{My};
+			$endtMy =~ /([A-Z-])\t(\d+)/;
+			print $1 . "\t" . $2 . "\t";
+			
+			print @$result[2]->{Results} . "\t";
+			print @$result[2]->{Anarci} . "\t";
+			print @$result[2]->{My} . "\t";
+			print "0\t";
+			print ("none\t" x 6);
+			print "\n";
+		}
+	}
+}
+
+sub jsonOut
+{
+	my ($cdrsCompareLink, $seqName) = @_;
+	my $index =1;
+	print "{\n";
+	print "\tSeq name: " . $seqName . ",\n";
+	foreach my $result (@$cdrsCompareLink)
+	{
+		print "\tRegion $index: {\n";
+		$index++;
+		if (ref($result) eq 'HASH')
+		{
+			print "\t\tResult: " . $result->{Results} . ",\n";
+			my $start = $result->{Start};
+			$start =~ /([A-Z-])\t(\d+)/;
+			print "\t\tRegion start AC code: " . $1 . ",\n";
+			print "\t\tRegion start index: " . $2 . ",\n";
+			my $end = $result->{End};
+			$end =~ /([A-Z-])\t(\d+)/;
+			print "\t\tRegion end AC code: " . $1 . ",\n";
+			print "\t\tRegion end index: " . $2 . ",\n";
+			print "\t\tRegion length: " . $result->{Length} . "\n";
+		}
+		else
+		{
+			print "\t\tRegion start: {\n";
+			print "\t\t\tResult: " . @$result[0]->{Results} . ",\n";
+			my $startAnarci = @$result[0]->{Anarci};
+			$startAnarci =~ /([A-Z-])\t(\d+)/;
+			print "\t\t\tANARCI AC code: " . $1 . ",\n";
+			print "\t\t\tANARCI index: " . $2 . ",\n";
+			my $startMy = @$result[0]->{My};
+			$startMy =~ /([A-Z-])\t(\d+)/;
+			print "\t\t\tMy program AC code: " . $1 . ",\n";
+			print "\t\t\tMy program index: " . $2 . ",\n";
+			print "\t\t},\n";
+			
+			print "\t\tRegion end: {\n";
+			print "\t\t\tResult: " . @$result[1]->{Results} . ",\n";
+			my $endAnarci = @$result[1]->{Anarci};
+			$endAnarci =~ /([A-Z-])\t(\d+)/;
+			print "\t\t\tANARCI AC code: " . $1 . ",\n";
+			print "\t\t\tANARCI index: " . $2 . ",\n";
+			my $endtMy = @$result[1]->{My};
+			$endtMy =~ /([A-Z-])\t(\d+)/;
+			print "\t\t\tMy program AC code: " . $1 . ",\n";
+			print "\t\t\tMy program index: " . $2 . ",\n";
+			print "\t\t},\n";
+			
+			print "\t\tRegion length: {\n";
+			print "\t\t\tResult: " . @$result[2]->{Results} . ",\n";
+			print "\t\t\tAnarci length: " . @$result[2]->{Anarci} . ",\n";
+			print "\t\t\tMy program length: " . @$result[2]->{My} . "\n";
+			print "\t\t}\n";
+		}
+		print "\t},\n";
+	}
+	print "}\n";
+}
+
+my $outFormat = "tsv";
+my $anatciMofiedFile;
+
+GetOptions(
+	"outFormat|of=s" =>  \$outFormat,
+	"refFile|rf=s" => \$anatciMofiedFile,
+	"usage|u" => \&usage
+) or usage();
+
+unless (defined $anatciMofiedFile) {
+    print "Error: --refFile or -rf is a required parameter\n";
+}
+
+unless ($outFormat eq 'tsv' || $outFormat eq 'json') {
+    print "Error: --outFormat must be either 'tsv' or 'json'\n";
+}
+
+my @programOutput = <STDIN>;
+
+my ($variableRegionLength, @anarciNumbring) = getAnarciNumberingInfo($anatciMofiedFile);
+my @anarciLengthProgrammOutput = spliceNumberingArray(\@programOutput, $variableRegionLength);
+
+my $seqName = basename($anatciMofiedFile, ".out");
+
+my @anarciCdrsRegions = getCdrsPosLength(\@anarciNumbring);
+my @myCdrsRegions = getCdrsPosLength(\@anarciLengthProgrammOutput);
+
+my @cdrsCompare = compareCdrsRegions(\@anarciCdrsRegions, \@myCdrsRegions);
+
+tsvOut(\@cdrsCompare, $seqName) if $outFormat eq "tsv";
+jsonOut(\@cdrsCompare, $seqName) if $outFormat eq "json";
+
+

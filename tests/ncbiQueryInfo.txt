@@ -1,0 +1,4 @@
+Link: https://www.ncbi.nlm.nih.gov/protein
+Query: (heavy[All Fields] AND Ig[All Fields] AND (variable region[All Fields] OR FAB[All Fields])) AND "Homo sapiens"[Organism] NOT pdb[filter] NOT precursor[All Fields] NOT fragment[All Fields] NOT predicted[All Fields] NOT isoform[All Fields] NOT hypothetical[All Fields]
+Result: 9809 fasta files
+Current date and time: 2024-10-19 17:49:20

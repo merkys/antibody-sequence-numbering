@@ -63,8 +63,8 @@ sub findOffset {
 	my $input_target = substr($input_seq, $current_index, $max_offset +1);
 	my @input_dict = split("",$input_target );
 	my @targets;
-	print "current index: $current_index\n";
-	print "target\n$input_target\n";
+	#print "current index: $current_index\n";
+	#print "target\n$input_target\n";
 	for my $key (keys %{$seq_ref})
 	{
 		my $target = substr($seq_ref->{$key}, $current_index, 1);
@@ -77,7 +77,7 @@ sub findOffset {
 				last;
 			}
 		}
-		print "$key: $target \n";
+		#print "$key: $target \n";
 	}
 	return 0 if @targets == 0;
 	my $fragments_fasta ='';
@@ -102,11 +102,11 @@ sub findOffset {
 	{
 		$local =~ /^(.+?)\n(.+)$/s;
 		my $seq = $2;
-		print "responce: $seq";
+		#print "responce: $seq";
 		chomp($seq);
 		push @responce_sequences, $seq;
 	}
-	print "\n";
+	#print "\n";
 	my $min_gaps = length($input_seq);
 	my $mins_seq;
 	my $max_resu =0;
@@ -137,7 +137,7 @@ sub findOffset {
 			
 	   	 }
 	}
-	print $min_gaps . "\n";
+	#print $min_gaps . "\n";
 	$offset = $min_gaps;
 	close $tf_h;
 	unlink $filename;
@@ -191,7 +191,7 @@ for my $hmm (@hmms)
 	}
 }
 
-print $best_profile . "\n";
+#print $best_profile . "\n";
 my $seq_ref = writeSeqFromTriimedNumbering("$files_dir/trimmedNumbering_clusters/$best_profile.tsv");
 
 
