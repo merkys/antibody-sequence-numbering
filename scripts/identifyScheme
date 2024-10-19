@@ -1,12 +1,11 @@
 #!/usr/bin/perl
 
-# Detects the numbering scheme used in *.tsv files, based on the explanations of the numbering schemes present in:
-# Dondelinger et al. (2018), doi:10.3389/fimmu.2018.02278
-# The numbering comparison table is given in S1 of the supplementary material.
-
 use strict;
 use warnings;
 
+use Getopt::Long::Descriptive;
+use List::MoreUtils qw( pairwise );
+use List::Util qw( all );
 use Set::Object qw( set );
 
 local $, = "\t";
@@ -36,27 +35,113 @@ my %pos = (
     '52A'  => set( 'L_Martin', 'H_Kabat', 'H_Chothia', 'H_Martin' ),
 );
 
-LINE:
-while( <> ) {
-    next if /^#/;
-    next unless /^(\S+)\s+seq\s+/;
-    my $id = $1;
-    $_ = <>;
-    chomp;
-    my( undef, undef, @numbers ) = split /\s+/, $_;
+my %pos_by_aa = (
+     22 => { C => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ) },
+     23 => { C => set( 'L_Kabat', 'L_Chothia', 'L_Martin', 'IMGT' ) },
 
-    my $schemes;
-    for my $key (keys %pos) {
-        next unless grep { $_ eq $key } @numbers;
-        $schemes =  $pos{$key} unless $schemes;
-        $schemes *= $pos{$key};
+     35 => { W => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ) },
+     36 => { W => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ) },
+     41 => { W => set( 'IMGT' ) },
+
+     88 => { C => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ) },
+     92 => { C => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ) },
+    104 => { C => set( 'IMGT' ) },
+
+     98 => { F => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ),
+             W => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ) },
+    103 => { F => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ),
+             W => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ) },
+    118 => { F => set( 'IMGT' ),
+             W => set( 'IMGT' ) },
+
+     99 => { G => set( 'L_Kabat', 'L_Chothia', 'L_Martin' ) },
+    104 => { G => set( 'H_Kabat', 'H_Chothia', 'H_Martin' ) },
+    119 => { W => set( 'IMGT' ) },
+);
+
+my( $opt ) = describe_options( <<"END" . 'OPTIONS',
+DESCRIPTION
+    Detects the numbering scheme used in TSV (default) or PDB files, based on the explanations of the numbering schemes present in:
+    Dondelinger et al. (2018), doi:10.3389/fimmu.2018.02278
+    The numbering comparison table is given in S1 of the supplementary material.
+END
+    [ 'pdb', 'process PDB format input' ],
+    [ 'by-aa', 'respect aminoacids at conservative positions' ],
+);
+
+# $schemes: undef = "I do not know", empty = "none of the known schemes"
+if( $opt->pdb ) {
+    my @numbers;
+    while( <> ) {
+        next unless /^ATOM/;
+        my $resnum = int substr $_, 22, 4;
+        my $icode = substr $_, 26, 1;
+        $icode = '' if $icode eq ' ';
+        push @numbers, $resnum . $icode;
     }
+    my $schemes = schemes_from_numbers( @numbers );
+    $schemes = schemes_by_category( @numbers ) unless $schemes && @$schemes;
+    print @$schemes;
+} else {
+    while( <> ) {
+        next if /^#/;
+        next unless /^\S+\s+seq\s+/;
 
-    if( $schemes && @$schemes ) {
+        chomp;
+        my( $id, undef, @aa ) = split /\s+/, $_;
+
+        $_ = <>;
+        chomp;
+        my( undef, undef, @numbers ) = split /\s+/, $_;
+
+        my $schemes = schemes_from_numbers( @numbers );
+        if( $opt->by_aa ) {
+            $schemes = schemes_from_aa( $schemes, pairwise { [ $a, $b ] } @aa, @numbers );
+        }
+        $schemes = schemes_by_category( @numbers ) unless @$schemes;
         print $id, @$schemes;
-    } elsif( grep { $_ =~ /[a-z]/i } @numbers ) {
-        print $id, 'UNKNOWN_NUMBERED', grep { $_ =~ /[a-z]/i } @numbers;
-    } else {
-        print $id, 'UNKNOWN';
     }
+}
+
+sub schemes_from_numbers
+{
+    my @numbers = @_;
+    my $schemes;
+
+    for (@numbers) {
+        next unless exists $pos{$_};
+        $schemes  = $pos{$_} unless $schemes;
+        $schemes *= $pos{$_};
+    }
+
+    return $schemes;
+}
+
+sub schemes_from_aa
+{
+    my $schemes = shift;
+    my @aa = @_;
+
+    return $schemes if $schemes && !@$schemes;
+    $schemes = set( map { @$_ } map { values %$_ } values %pos_by_aa ) unless $schemes;
+
+    for (@aa) {
+        my( $aa, $pos ) = @$_;
+        next unless exists $pos_by_aa{$pos};
+
+        for (keys %{$pos_by_aa{$pos}}) {
+            next if $_ eq $aa;
+            $schemes -= $pos_by_aa{$pos}->{$_};
+        }
+    }
+
+    return $schemes;
+}
+
+sub schemes_by_category
+{
+    my @numbers = @_;
+
+    return set( 'UNKNOWN_NUMBERED' ) if all { $_ =~ /^[0-9]+$/ } @numbers;
+    return set( 'UNKNOWN' );
 }
