@@ -1,0 +1,8 @@
+>IGKV
+((gene:IGKV1) OR (gene:IGKV2) OR (gene:IGKV3) OR (gene:IGKV4) OR (gene:IGKV5) OR (gene:IGKV6) OR (gene:IGKV7)) AND (organism_id:9606)
+
+>IGLV
+((gene:IGLV1) OR (gene:IGLV2) OR (gene:IGLV3) OR (gene:IGLV4) OR (gene:IGLV5) OR (gene:IGLV6) OR (gene:IGLV7) OR (gene:IGLV8) OR (gene:IGLV9) OR (gene:IGLV10)) AND (organism_id:9606)
+
+>IGHV
+((gene:IGHV1) OR (gene:IGHV2) OR (gene:IGHV3) OR (gene:IGHV4) OR (gene:IGHV5) OR (gene:IGHV6) OR (gene:IGHV7) OR (gene:IGHV8)) AND (organism_id:9606)

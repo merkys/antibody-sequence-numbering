@@ -1,0 +1,142 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use lib '.';
+use HMMSearchResultReader;
+use Getopt::Long;
+sub usage {
+    print <<"USAGE";
+Usage: script_name.pl [options]
+
+Required parameters:
+  --input | -i         Input sequence file in FASTA format (required)
+  --joiningHMM | -jHMM Path to the Joining HMM file (at least one HMM is required)
+  --variableHMM | -vHMM Path to the Variable HMM file (at least one HMM is required)
+
+Optional parameters:
+  --usage | -u         Display this help message
+
+Examples:
+  perl script_name.pl --input input.fasta --joiningHMM jHMM.hmm
+  perl script_name.pl --input input.fasta --variableHMM vHMM.hmm
+  perl script_name.pl --input input.fasta --joiningHMM jHMM.hmm --variableHMM vHMM.hmm
+
+Notes:
+  - The input sequence must be in FASTA format.
+  - At least one of the HMM files (--joiningHMM or --variableHMM) must be provided.
+
+USAGE
+    exit;
+}
+
+my ($joiningHMM, $variableHMM, $input_seq);
+
+GetOptions(
+	"joiningHMM|jHMM=s" =>  \$joiningHMM,
+	"variableHMM|vHMM=s" => \$variableHMM,
+	"input|i=s" => \$input_seq,
+	"usage|u" => \&usage
+) or usage();
+
+unless (defined $input_seq)
+{
+    print "Error: --input or -i is a required parameter\n";
+    usage();
+}
+
+if (!defined $joiningHMM and !defined $variableHMM)
+{
+    print "Error: At least one of the HMM files (--joiningHMM or --variableHMM) must be provided\n";
+    usage();
+}
+
+
+if(defined $joiningHMM)
+{
+	my $hmm_seatch_coomand = "hmmsearch --noali --domE 1e-5 $joiningHMM $input_seq";
+	my $search_result = qx($hmm_seatch_coomand);
+
+	my $reader = HMMSearchResultReader->new(\$search_result);
+
+	$reader->parce();
+
+	my $results = $reader->get_results();
+	my $best_score = 0;
+	my $best_profile;
+	foreach my $result (@$results)
+	{
+		print "HMM Profile Name: $result->{'HMM_profile_name'}\n";
+		print "Domain Number: $result->{'Domain_number'}\n";
+		print "Score: $result->{'Score'}\n";
+		print "Bias: $result->{'Bias'}\n";
+		print "c-Evalue: $result->{'c-Evalue'}\n";
+		print "i-Evalue: $result->{'i-Evalue'}\n";
+		print "hmmfrom: $result->{'hmmfrom'}\n";
+		print "hmmto: $result->{'hmmto'}\n";
+		print "alifrom: $result->{'alifrom'}\n";
+		print "alito: $result->{'alito'}\n";
+		print "envfrom: $result->{'envfrom'}\n";
+		print "envto: $result->{'envto'}\n";
+		print "acc: $result->{'acc'}\n";
+		print "----------------------------\n";
+		if ($best_score < $result->{'Score'})
+		{
+			$best_score = $result->{'Score'};
+			$best_profile = $result->{'HMM_profile_name'};
+		}
+	}
+	if(@$results)
+	{
+		print "best_score: $best_score\n";
+		print "best_profile: $best_profile\n";
+		exit;
+	}
+}
+
+if(defined $variableHMM)
+{
+	my $hmm_seatch_coomand = "hmmsearch --noali --domE 1e-5 $variableHMM $input_seq";
+	my $search_result = qx($hmm_seatch_coomand);
+
+	my $reader = HMMSearchResultReader->new(\$search_result);
+
+	$reader->parce();
+
+	my $results = $reader->get_results();
+	my $best_score = 0;
+	my $best_profile;
+	foreach my $result (@$results)
+	{
+		print "HMM Profile Name: $result->{'HMM_profile_name'}\n";
+		print "Domain Number: $result->{'Domain_number'}\n";
+		print "Score: $result->{'Score'}\n";
+		print "Bias: $result->{'Bias'}\n";
+		print "c-Evalue: $result->{'c-Evalue'}\n";
+		print "i-Evalue: $result->{'i-Evalue'}\n";
+		print "hmmfrom: $result->{'hmmfrom'}\n";
+		print "hmmto: $result->{'hmmto'}\n";
+		print "alifrom: $result->{'alifrom'}\n";
+		print "alito: $result->{'alito'}\n";
+		print "envfrom: $result->{'envfrom'}\n";
+		print "envto: $result->{'envto'}\n";
+		print "acc: $result->{'acc'}\n";
+		print "----------------------------\n";
+	    
+		if ($best_score < $result->{'Score'})
+		{
+			$best_score = $result->{'Score'};
+			$best_profile = $result->{'HMM_profile_name'};
+		}
+		
+	}
+	
+	if(@$results)
+	{
+		print "best_score: $best_score\n";
+		print "best_profile: $best_profile\n";
+		exit;
+	}
+}
+
+
+print "Not Antibody\n";
