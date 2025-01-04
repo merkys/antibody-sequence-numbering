@@ -1,0 +1,133 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Cwd;
+use Getopt::Long;
+use File::Temp qw/ tempfile /;
+use FastaParser qw/ readFasta /;
+
+
+sub findBestDomain
+{
+	my ($seqFile) = @_;
+	my ($fh, $domTblout) = tempfile();
+	close($fh);
+	
+	my $hmmScanResult = qx(hmmscan --domT 100 -T 100 --domtblout $domTblout --noali hmms/IG_combined.hmm $seqFile);
+	
+	open(my $tblout_fh, "<", $domTblout)
+		or die "Could not open hmmscan domain table out file: $domTblout";
+		
+	my %sequences;
+	while(my $line = <$tblout_fh>)
+	{
+		next if $line =~ /^#/;
+		my @field = split(/\s+/, $line);
+		my $seqInfo = {
+					domain	=> $field[0],
+					tLen 	=> $field[2],
+					qLen 	=> $field[5],
+					e_value	=> $field[6],	
+					score	=> $field[7],	
+					bias	=> $field[8],
+					acc	=> $field[-2],
+					seq	=> '',
+					fullName=> ''
+				};
+		
+		my $id = $field[3];
+		if(exists $sequences{$id})
+		{
+			if($sequences{$id} -> {score} < $seqInfo -> {score})
+			{
+				$sequences{$id} = $seqInfo;
+			}
+		}
+		else
+		{
+			$sequences{$id} = $seqInfo;
+		}
+	}
+	unlink $domTblout or warn "Could not unlink $domTblout: $!";
+	return \%sequences;
+}
+
+sub alignToDomain
+{
+	my ($seqFile, $domain) = @_;
+	my $hmmAlignResults = qx(hmmalign --outformat afa --trim hmms/$domain.hmm $seqFile);
+	my @hmmAlignResults = split("\n", $hmmAlignResults);
+	my $header = $hmmAlignResults[0];
+	my $sequence = join("", @hmmAlignResults[1 .. $#hmmAlignResults]);
+	
+	return $header, $sequence;
+	
+}
+
+sub outIMGT
+{
+	my ($header, $sequence, $domain) = @_;
+	$header =~ s/>//;
+	my $outputText ="# Domain: $domain\n# Sequence: $header\n";
+	my @seq = split('', $sequence);
+	my $index = 1;
+	for my $char (@seq)
+	{
+		$outputText .=  "$char\t$index\t\n";
+		$index++;
+	}
+	return $outputText . "//\n";
+}
+
+sub usage
+{
+	print "usage\n";
+}
+my ($numberingScheme, $seqFile, $outputFile);
+
+GetOptions(
+	"scheme|s=s" =>  \$numberingScheme,
+	"output|o=s" => \$outputFile,
+	"input|i=s" => \$seqFile,
+) or usage();
+
+unless (defined $seqFile)
+{
+    print "Error: --input or -i is a required parameter\n";
+    usage();
+}
+
+$numberingScheme //= "imgt";
+
+my $fastaSequences_ref = readFasta($seqFile);
+
+
+my $seqInfo_ref = findBestDomain($seqFile);
+my $output = '';
+for my $seq (@{$fastaSequences_ref})
+{
+	my $id = $seq->{header};
+	if($seq->{header} =~ /^(\S+)\s/)
+	{
+		$id = $1;
+	}
+	$seqInfo_ref -> {$id}->{fullName} = $seq->{header};
+	$seqInfo_ref -> {$id}->{seq} = $seq->{seq};
+	my ($tmp_fh, $toAlignFile) = tempfile();
+	print $tmp_fh ">" . $seq->{header} . "\n";
+	print $tmp_fh $seq->{seq};
+	close($tmp_fh);
+	my ($header, $sequence) = alignToDomain($toAlignFile, $seqInfo_ref -> {$id}->{domain});
+	$output .= outIMGT($header, $sequence, $seqInfo_ref -> {$id}->{domain});
+	unlink $toAlignFile or warn "Could not unlink $toAlignFile: $!";
+}
+
+my $out_fh = *STDOUT;
+if($outputFile)
+{
+	open($out_fh, '>', $outputFile)
+		or die "Could not open file: $outputFile";
+}
+print $out_fh $output;
+close($out_fh) if $outputFile;
+

@@ -1,0 +1,64 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Translate;
+my $genesFile = $ARGV[0];
+my $translateInfoFile = $ARGV[1];
+
+open(my $fh, "<", $genesFile)
+	or die "Could not open file $genesFile";
+	
+my %seqHash = ();
+my $ifNewSeq = 0;
+my $currentSeq = '';
+my $seq = '';
+while(my $line = <$fh>)
+{
+	chomp($line);
+	$ifNewSeq = 1 if $line =~ /^>/;
+	if($ifNewSeq)
+	{
+		$seqHash{$currentSeq} = $seq if $currentSeq;
+		$currentSeq = $line;
+		$ifNewSeq = 0;
+		$seq = '';
+		next;
+	}
+	$seq .=$line;
+}
+$seqHash{$currentSeq} = $seq;
+
+close($fh);
+
+open($fh, "<", $translateInfoFile)
+	or die "Could not open file $translateInfoFile";
+
+my $transaltedSeq;
+while(my $line = <$fh>)
+{
+	my @line = split(/\s/, $line);
+	my ($frame) = ($line[-1] =~ /(\d)\\\d/);
+	pop(@line);
+	if($line[0] =~ /^\*$/)
+	{
+		for my $key (keys %seqHash)
+		{
+			print "$key\n";
+			$transaltedSeq =  Translate::translate_seq($seqHash{$key}, $frame);
+			$transaltedSeq =~ s/\?//g;
+			print $transaltedSeq . "\n";
+		}
+	}
+	else
+	{
+		for my $seq (@line)
+		{
+			print ">$seq\n";
+			$transaltedSeq =  Translate::translate_seq($seqHash{">$seq"}, $frame);
+			$transaltedSeq =~ s/\?//g;
+			print $transaltedSeq . "\n";
+		}
+	}
+}
+
+close($fh);

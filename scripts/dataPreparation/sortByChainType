@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $anotation_file = $ARGV[0];
+my $chain_type = $ARGV[1];
+
+open(my $af,'<', $anotation_file)
+	or die "Could not open file: $anotation_file";
+
+if($chain_type ne "light" and $chain_type ne "heavy")
+{
+	die "Wrong chain type";
+}
+
+my $tsv_header = <$af>;
+while(my $line = <$af>)
+{
+	next if $line =~ /^\s+$/;
+	$line =~/^(\S{4})\t(\S\S?)\t(\S\S?).+$/;
+	
+	if($chain_type eq "heavy" and $2 ne "NA")
+	{
+		print $1 . "_" . $2 . "\n";
+	}
+	elsif($chain_type eq "light" and $3 ne "NA")
+	{
+		print $1 . "_" . $3 . "\n";
+	}
+}
+close($af);

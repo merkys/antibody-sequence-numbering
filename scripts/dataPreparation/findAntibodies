@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+
+my $seq_file = $ARGV[0];
+my $id_file = $ARGV[1];
+
+my $seq_file_data = qx(zcat $seq_file);
+my @seq_file_data = split("\n", $seq_file_data);
+
+	
+my $ids = qx(cat $id_file);
+
+my @ids = split("\n", $ids);
+
+my %id_map = map { $_ => 1 } @ids;
+
+foreach my $line (@seq_file_data)
+{
+    if ($line =~ /^>(.{6})/)
+    {
+        my $seq_id = $1;
+        $print = exists $id_map{$seq_id};
+    }
+    print "$line\n" if $print;
+}
+

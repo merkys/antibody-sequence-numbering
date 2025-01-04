@@ -1,0 +1,55 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+
+my $v_file = $ARGV[0];
+my $j_file = $ARGV[1];
+
+open(my $vf, "<", $v_file)
+	or die "Colud not open file: $v_file";
+
+my $type = '';
+if($v_file =~ /H/)
+{
+	$type = 'heavy';
+}
+else
+{
+	$type = 'light';
+}
+
+while(my $v_line_header = <$vf>)
+{
+	my $seq = <$vf>;
+	chomp($seq);
+	chomp($v_line_header);
+	open(my $jf, "<", $j_file)
+		or die "Colud not open file: $j_file";
+	while(my $j_line_header = <$jf>)
+	{
+		my $j_seq = <$jf>;
+		chomp($j_seq);
+		chomp($j_line_header);
+		my $combined_length = length($seq) + length($j_seq);
+		if ($combined_length < 128)
+		{
+			if($type eq 'heavy')
+			{
+            			my $padding_length = 128 - $combined_length;
+            			$j_seq = ("-" x $padding_length) . $j_seq;
+            		}
+            		else
+            		{
+            			my $padding_length = 127 - $combined_length;
+            			$j_seq = ("-" x $padding_length) . $j_seq . "-";
+            		}
+        	}
+		$j_line_header =~/^>(.+)$/;
+		print "$v_line_header" . "_" . $1 . "\n";
+		print $seq;
+		print $j_seq . "\n";
+	}
+	close($jf);
+}
+close($vf);

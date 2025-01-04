@@ -1,0 +1,21 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $raw_id_file = $ARGV[0];
+my $shared_id_file = $ARGV[1];
+
+my $shared_ids = qx(cat $shared_id_file);
+
+my @shared_ids = split("\n", $shared_ids);
+
+my %id_map = map { $_ => 1 } @shared_ids;
+
+open(my $fh, '<', $raw_id_file)
+	or die "Could not opent file: $raw_id_file";
+
+while(my $line = <$fh>)
+{
+	chomp($line);
+    	print "$line\n" if !exists $id_map{$line};
+}

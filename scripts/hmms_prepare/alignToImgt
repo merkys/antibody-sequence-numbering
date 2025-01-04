@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+
+
+my $IG_file = $ARGV[0];
+my $IG_type = $ARGV[1];
+
+open(my $fh, '<', $IG_file)
+	or die "Could not open file $IG_file";
+	
+while(my $header = <$fh>)
+{
+	
+	my $v_seq = <$fh>;
+	my $j_seq = <$fh>;
+	chomp($header);
+	chomp($v_seq);
+	chomp($j_seq);
+	print $header . "\n";
+	alignVseq($v_seq);
+}
+
+close($fh);

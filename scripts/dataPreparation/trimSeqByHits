@@ -1,0 +1,55 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $seqFile = $ARGV[0];
+my $hmmHitsFile = $ARGV[1];
+
+
+open(my $fh, "<", $hmmHitsFile)
+	or die "Could not open file: $hmmHitsFile";
+
+
+<$fh>;
+<$fh>;
+<$fh>;
+my %hash;	
+while(my $line = <$fh>)
+{
+	chomp $line;
+	last if $line =~ /^\s*#\s*$/;
+	
+	my @fields = split(/\s+/, $line);
+	my $id_seq = $fields[0];
+	my $env_to = $fields[20];
+
+    	
+	if (exists $hash{$id_seq})
+	{
+		next;
+	}
+	
+    	$hash{$id_seq} = $env_to;
+}
+
+close($fh);
+open(my $sh, "<", $seqFile)
+	or die "Could not open file: $seqFile";
+	
+while(my $header = <$sh>)
+{
+	print $header;
+	$header =~/^>(\S+)/;
+	my $seq_id = $1;
+	my $seq = <$sh>;
+	chomp($seq);
+	if(exists $hash{$seq_id})
+	{
+		my $trim_to = $hash{$seq_id};
+		my @seq = split("",$seq);
+		my @trimmed_seq = @seq[0 .. $trim_to - 1];
+		$seq = join("",@trimmed_seq);
+	}
+	print "$seq\n";
+}
+close($sh);

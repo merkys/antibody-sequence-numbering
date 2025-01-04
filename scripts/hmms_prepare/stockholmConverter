@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $fastaFile = $ARGV[0];
+
+open(my $fh, '<', $fastaFile)
+	or die "Could not open file: $fastaFile";
+	
+my $ifNewSeq = 0;
+my $seq = '';
+print "# STOCKHOLM 1.0\n\n";
+print "#=GC RF" . (" " x 43) . ("x" x 128) . "\n";
+while(my $line = <$fh>)
+{
+	chomp($line);
+	$ifNewSeq = 1 if $line =~ /^>/;
+	if($ifNewSeq)
+	{
+		my $padding_length = 51 - length($line);
+            	my $header = $line . (" " x $padding_length);
+            	$header =~ s/>//;
+            	print "$seq\n" if $seq ne '';
+            	print $header;
+		$ifNewSeq = 0;
+		$seq = '';
+		next;
+	}
+	$seq .=$line;
+}
+print "$seq\n//";
+close($fh);

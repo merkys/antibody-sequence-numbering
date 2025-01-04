@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# This script downloads a files by link
+# and also creates a download log. Both files are saved at the specified path.
+
+# Usage -------------------------------------\
+# ${0} outputDir link fileName               \
+#--------------------------------------------\
+
+OUTPUT_DIR=${1}
+LOG_DIR=${2}
+LINK=${3}
+FILE_NAME=${4}
+
+
+(set -x; directory-metadata; wget -O "$OUTPUT_DIR/$FILE_NAME" "$LINK/$FILE_NAME"; date -Imin) 2>&1 | tee "$LOG_DIR/$FILE_NAME.log"
