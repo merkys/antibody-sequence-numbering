@@ -1,9 +1,0 @@
-#!/bin/bash
-
-
-for gene_id in 28483 28481 28479 28477 28476 28475; do
-  echo "Fetching protein for gene ID: $gene_id"
-  elink -db gene -id $gene_id -target protein | efetch -format fasta
-done
-
-

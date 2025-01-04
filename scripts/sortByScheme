@@ -1,8 +1,0 @@
-#!/bin/bash
-
-outdir=${1}
-type=${2}
-tmp_file=${3}
-grep -E "^.{6}\s${type}_Kabat$"  $tmp_file | awk '{print $1}' > "$outdir/${type}_Kabat.id"
-grep -E "^.{6}\s${type}_Chothia$"  $tmp_file | awk '{print $1}' > "$outdir/${type}_Chothia.id"
-grep -E "^.{6}\s${type}_Chothia\s${type}_Kabat" $tmp_file | awk '{print $1}' > "$outdir/${type}_Kabat_Chothia.id"

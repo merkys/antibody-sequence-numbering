@@ -1,8 +1,0 @@
-pdb_seqres.txt.gz
-pdb_seqres.txt.gz.log
-scripts_out/extracted.fasta
-scripts_out/extractedClustered.fasta
-scripts_out/extractedClustered.fasta.clstr
-scripts_out/pfam_scan.out
-scripts_out/heavy_and_light_chains/heavy_chains.txt
-scripts_out/heavy_and_light_chains/light_chains.txt
