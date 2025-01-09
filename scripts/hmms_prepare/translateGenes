@@ -41,7 +41,7 @@ while(my $line = <$fh>)
 	pop(@line);
 	if($line[0] =~ /^\*$/)
 	{
-		for my $key (keys %seqHash)
+		for my $key (sort keys %seqHash)
 		{
 			print "$key\n";
 			$transaltedSeq =  Translate::translate_seq($seqHash{$key}, $frame);
