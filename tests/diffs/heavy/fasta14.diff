@@ -1,0 +1,37 @@
+# Sequence: 3qeg_H mol:protein length:239  Fab fragment of hu <
+g	105						      |	A	105	
+t	106						      |	S	106	
+s	107						      |	D	107	
+y	108						      |	S	108	
+s	109						      |	R	109	
+h	110						      |	D	110	
+Y	111						      |	F	111	
+Y	111A						      |	S	111 a	
+N	111B						      |	Y	111 b	
+I	111C						      |	Y	111 c	
+M	111D						      |	E	111 d	
+D	111E						      |	P	111 e	
+V	111F						      |	G	111 f	
+W	112G						      |	T	112 f	
+G	112F						      |	S	112 e	
+Q	112E						      |	Y	112 d	
+G	112D						      |	S	112 c	
+T	112C						      |	H	112 b	
+T	112B						      |	Y	112 a	
+V	112						      |	Y	112	
+T	113						      |	N	113	
+V	114						      |	I	114	
+S	115						      |	M	115	
+S	116						      |	D	116	
+							      >	V	117	
+							      >	W	118	
+							      >	G	119	
+							      >	Q	120	
+							      >	G	121	
+							      >	T	122	
+							      >	T	123	
+							      >	V	124	
+							      >	T	125	
+							      >	V	126	
+							      >	S	127	
+							      >	S	128	

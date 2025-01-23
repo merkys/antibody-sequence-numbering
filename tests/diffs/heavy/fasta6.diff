@@ -1,0 +1,35 @@
+# Sequence: 2xtj_D mol:protein length:131  FAB FROM A HUMAN M <
+m	105						      |	A	105	
+n	106						      |	R	106	
+v	107						      |	H	107	
+Y	109						      |	E	109	
+L	110						      |	I	110	
+M	111						      |	Q	111	
+Y	111A						      |	I	111 a	
+R	111B						      |	G	111 b	
+F	111C						      |	R	111 c	
+A	111D						      |	Y	111 d	
+S	111E						      |	G	111 e	
+W	112G						      |	M	112 f	
+G	112F						      |	N	112 e	
+Q	112E						      |	V	112 d	
+G	112D						      |	Y	112 c	
+T	112C						      |	Y	112 b	
+L	112B						      |	L	112 a	
+V	112						      |	M	112	
+T	113						      |	Y	113	
+V	114						      |	R	114	
+S	115						      |	F	115	
+S	116						      |	A	116	
+							      >	S	117	
+							      >	W	118	
+							      >	G	119	
+							      >	Q	120	
+							      >	G	121	
+							      >	T	122	
+							      >	L	123	
+							      >	V	124	
+							      >	T	125	
+							      >	V	126	
+							      >	S	127	
+							      >	S	128	

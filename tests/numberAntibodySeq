@@ -16,7 +16,7 @@ sub findBestDomain
 	my ($fh, $domTblout) = tempfile();
 	close($fh);
 	
-	my $hmmScanResult = qx(hmmscan --domT 100 -T 100 --domtblout $domTblout --noali hmms/IG_combined.hmm $seqFile);
+	my $hmmScanResult = qx(hmmscan --domT 100 -T 100 --domtblout $domTblout --noali ../hmms/IG_combined.hmm $seqFile);
 	
 	open(my $tblout_fh, "<", $domTblout)
 		or die "Could not open hmmscan domain table out file: $domTblout";
@@ -58,7 +58,7 @@ sub findBestDomain
 sub alignToDomain
 {
 	my ($seqFile, $domain) = @_;
-	my $hmmAlignResults = qx(hmmalign --outformat afa --trim hmms/$domain.hmm $seqFile);
+	my $hmmAlignResults = qx(hmmalign --outformat afa --trim ../hmms/$domain.hmm $seqFile);
 	my @hmmAlignResults = split("\n", $hmmAlignResults);
 	my $header = $hmmAlignResults[0];
 	my $sequence = join("", @hmmAlignResults[1 .. $#hmmAlignResults]);
@@ -69,7 +69,7 @@ sub alignToDomain
 sub checkForInsertions
 {
 	my ($seqFile, $domain, $id) = @_;
-	my $hmmAlignResults = qx(hmmalign --outformat stockholm --trim hmms/$domain.hmm $seqFile);
+	my $hmmAlignResults = qx(hmmalign --outformat stockholm --trim ../hmms/$domain.hmm $seqFile);
 	my @hmmAlignResults = split("\n", $hmmAlignResults);
 	my $gc_rf ='';
 	my $seq = '';
@@ -317,4 +317,5 @@ if($outputFile)
 }
 print $out_fh $output;
 close($out_fh) if $outputFile;
+
 

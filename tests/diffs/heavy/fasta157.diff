@@ -1,0 +1,34 @@
+# Sequence: 8t7f_I mol:protein length:237  S1 variant of Fab  <
+w	105						      |	A	105	
+y	106						      |	R	106	
+h	107						      |	S	107	
+f	108						      |	A	108	
+s	109						      |	A	109	
+p	110						      |	S	110	
+g	111						      |	Y	111	
+M	111A						      |	Y	111 a	
+D	111B						      |	G	111 b	
+Y	111C						      |	Y	111 c	
+W	111D						      |	W	111 d	
+G	112F						      |	H	112 e	
+Q	112E						      |	W	112 d	
+G	112D						      |	Y	112 c	
+T	112C						      |	H	112 b	
+L	112B						      |	F	112 a	
+V	112						      |	S	112	
+T	113						      |	P	113	
+V	114						      |	G	114	
+S	115						      |	M	115	
+S	116						      |	D	116	
+							      >	Y	117	
+							      >	W	118	
+							      >	G	119	
+							      >	Q	120	
+							      >	G	121	
+							      >	T	122	
+							      >	L	123	
+							      >	V	124	
+							      >	T	125	
+							      >	V	126	
+							      >	S	127	
+							      >	S	128	

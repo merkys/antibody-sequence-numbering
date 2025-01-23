@@ -1,0 +1,32 @@
+# Sequence: 7sob_G mol:protein length:128  S309 Fab heavy cha <
+e	105						      |	A	105	
+s	106						      |	R	106	
+L	107						      |	D	107	
+I	108						      |	Y	108	
+G	109						      |	T	109	
+G	110						      |	R	110	
+F	111						      |	G	111	
+D	111A						      |	A	111 a	
+N	111B						      |	W	111 b	
+W	111C						      |	F	111 c	
+G	111D						      |	G	112 d	
+Q	112E						      |	E	112 c	
+G	112D						      |	S	112 b	
+T	112C						      |	L	112 a	
+L	112B						      |	I	112	
+V	112						      |	G	113	
+T	113						      |	G	114	
+V	114						      |	F	115	
+S	115						      |	D	116	
+S	116						      |	N	117	
+							      >	W	118	
+							      >	G	119	
+							      >	Q	120	
+							      >	G	121	
+							      >	T	122	
+							      >	L	123	
+							      >	V	124	
+							      >	T	125	
+							      >	V	126	
+							      >	S	127	
+							      >	S	128	

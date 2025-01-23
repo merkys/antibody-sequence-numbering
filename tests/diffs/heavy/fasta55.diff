@@ -1,0 +1,37 @@
+# Sequence: 6lxj_H mol:protein length:237  Heavy chain of Z2B <
+i	105						      |	A	105	
+i	106						      |	R	106	
+g	107						      |	D	107	
+s	108						      |	L	108	
+Y	109						      |	Q	109	
+Y	110						      |	D	110	
+Y	111						      |	T	111	
+Y	111A						      |	P	111 a	
+N	111B						      |	M	111 b	
+G	111C						      |	V	111 c	
+L	111D						      |	D	111 d	
+D	111E						      |	R	111 e	
+V	111F						      |	I	111 f	
+W	112G						      |	I	112 f	
+G	112F						      |	G	112 e	
+Q	112E						      |	S	112 d	
+G	112D						      |	Y	112 c	
+T	112C						      |	Y	112 b	
+T	112B						      |	Y	112 a	
+V	112						      |	Y	112	
+T	113						      |	N	113	
+V	114						      |	G	114	
+S	115						      |	L	115	
+S	116						      |	D	116	
+							      >	V	117	
+							      >	W	118	
+							      >	G	119	
+							      >	Q	120	
+							      >	G	121	
+							      >	T	122	
+							      >	T	123	
+							      >	V	124	
+							      >	T	125	
+							      >	V	126	
+							      >	S	127	
+							      >	S	128	
