@@ -227,11 +227,11 @@ sub outIMGT
 		#print $insertion_left . "\n";
 		for(my $i = 0; $i < $insertion_left; $i++)
 		{
-			push @numbering, 111 . chr(65 + $i);
+			push @numbering, 111 . " " . lc(chr(65 + $i));
 		}
 		for(my $i = 0; $i < $insertion_right; $i++)
 		{
-			push @numbering, 112 . chr(65 + $insertion_right - $i);
+			push @numbering, 112 . " " . lc(chr(64 + $insertion_right - $i));
 		}
 		
 	}
@@ -243,7 +243,7 @@ sub outIMGT
 	
 	for(my $i = 0; $i < @seq; $i++)
 	{
-		$outputText .=  "$seq[$i]\t$numbering[$i]\t\n";
+		$outputText .=  uc($seq[$i]) . "\t$numbering[$i]\t\n";
 	}
 	return $outputText . "//\n";
 }

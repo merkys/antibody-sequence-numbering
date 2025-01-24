@@ -96,24 +96,26 @@ sub fixAlignment
 	my ($seq) = @_;
 	my @seq = split('',$seq);
 	my $cdr1 = fixCdr($seq, 26, 37, 12);
-	#print $cdr1 . "\n";
+	#print "cdr1: $cdr1\n";
 	my $cdr2 = fixCdr($seq, 55, 64, 10);
-	#print $cdr2 . "\n";
+	#print "cdr2: $cdr2\n";
 	my $tillTheEnd_length = length(join("", @seq[104..$#seq]));
 	my $cdr3;
 	my $insertionCount =0;
-	#Fprint $tillTheEnd_length . "\n";
+	#print $tillTheEnd_length . "\n";
 	if($tillTheEnd_length > 24)
 	{
 		$insertionCount = $tillTheEnd_length - 24;
-		print $insertionCount . "\n";
-		$cdr3 = @seq[104..116];
+		#print $insertionCount . "\n";
+		$cdr3 = join("",@seq[104..116]);
+		#print "cdr3: $cdr3\n";
 	}
 	else
 	{
 		$cdr3 = fixCdr($seq, 104, 116, 13);
-		#print $cdr3 . "\n";
+		#print "cdr3: $cdr3\n";
 	}
+	
 	return join("", @seq[0..25]) 
 		. $cdr1 
 		. join("", @seq[38..54]) 
@@ -227,11 +229,11 @@ sub outIMGT
 		#print $insertion_left . "\n";
 		for(my $i = 0; $i < $insertion_left; $i++)
 		{
-			push @numbering, 111 . chr(65 + $i);
+			push @numbering, 111 . " " . lc(chr(65 + $i));
 		}
 		for(my $i = 0; $i < $insertion_right; $i++)
 		{
-			push @numbering, 112 . chr(65 + $insertion_right - $i);
+			push @numbering, 112 . " " . lc(chr(64 + $insertion_right - $i));
 		}
 		
 	}
@@ -243,7 +245,7 @@ sub outIMGT
 	
 	for(my $i = 0; $i < @seq; $i++)
 	{
-		$outputText .=  "$seq[$i]\t$numbering[$i]\t\n";
+		$outputText .=  uc($seq[$i]) . "\t$numbering[$i]\t\n";
 	}
 	return $outputText . "//\n";
 }
