@@ -8,22 +8,26 @@ use lib "$FindBin::RealBin/../modules";
 use File::Temp qw/ tempfile /;
 use FastaParser qw/ readFasta /;
 use POSIX qw(ceil);
-
+use Seq;
 
 sub findBestDomain
 {
-	my ($seqFile) = @_;
+	my ($id, $seq) = @_;
 	my ($fh, $domTblout) = tempfile();
 	close($fh);
-	
-	my $hmmScanResult = qx(hmmscan --domT 100 -T 100 --domtblout $domTblout --noali hmms/IG_combined.hmm $seqFile);
+	my $fastaTmp = writeFastaToTMP($id, $seq);
+	my $hmmScanResult = qx(hmmscan --domT 100 -T 100 --domtblout $domTblout --noali hmms/IG_combined.hmm $fastaTmp);
 	
 	open(my $tblout_fh, "<", $domTblout)
 		or die "Could not open hmmscan domain table out file: $domTblout";
-		
+	
+	local $/ = "\n";
 	my %sequences;
+	my $bestScore = 0;
+	my $bestDomain = {};
 	while(my $line = <$tblout_fh>)
 	{
+		
 		next if $line =~ /^#/;
 		my @field = split(/\s+/, $line);
 		my $seqInfo = {
@@ -38,21 +42,16 @@ sub findBestDomain
 					fullName=> ''
 				};
 		
-		my $id = $field[3];
-		if(exists $sequences{$id})
+
+		if($bestScore < $seqInfo -> {score})
 		{
-			if($sequences{$id} -> {score} < $seqInfo -> {score})
-			{
-				$sequences{$id} = $seqInfo;
-			}
-		}
-		else
-		{
-			$sequences{$id} = $seqInfo;
+			$bestDomain = $seqInfo;
+			$bestScore = $seqInfo -> {score};
 		}
 	}
 	unlink $domTblout or warn "Could not unlink $domTblout: $!";
-	return \%sequences;
+	unlink $fastaTmp or warn "Could not unlink $fastaTmp: $!";
+	return $bestDomain;
 }
 
 sub alignToDomain
@@ -66,54 +65,32 @@ sub alignToDomain
 	return $header, $sequence;
 }
 
-sub checkForInsertions
-{
-	my ($seqFile, $domain, $id) = @_;
-	my $hmmAlignResults = qx(hmmalign --outformat stockholm --trim hmms/$domain.hmm $seqFile);
-	my @hmmAlignResults = split("\n", $hmmAlignResults);
-	my $gc_rf ='';
-	my $seq = '';
-	for my $line (@hmmAlignResults)
-	{
-		if($line =~ /#=GC RF/)
-		{
-			$line =~/\S+\s+\S+\s+(\S+)/;
-			$gc_rf = $1;
-		}
-		if($line =~ /^$id/)
-		{
-			$line =~/\S+\s+(\S+)/;
-			$seq = $1;
-		}
-	}
-	
-	return $gc_rf, $seq;
-	
-}
 
 sub fixAlignment
 {
 	my ($seq) = @_;
 	my @seq = split('',$seq);
 	my $cdr1 = fixCdr($seq, 26, 37, 12);
-	#print $cdr1 . "\n";
+	#print "cdr1: $cdr1\n";
 	my $cdr2 = fixCdr($seq, 55, 64, 10);
-	#print $cdr2 . "\n";
+	#print "cdr2: $cdr2\n";
 	my $tillTheEnd_length = length(join("", @seq[104..$#seq]));
 	my $cdr3;
 	my $insertionCount =0;
-	#Fprint $tillTheEnd_length . "\n";
+	#print $tillTheEnd_length . "\n";
 	if($tillTheEnd_length > 24)
 	{
 		$insertionCount = $tillTheEnd_length - 24;
-		print $insertionCount . "\n";
-		$cdr3 = @seq[104..116];
+		#print $insertionCount . "\n";
+		$cdr3 = join("",@seq[104..116]);
+		#print "cdr3: $cdr3\n";
 	}
 	else
 	{
 		$cdr3 = fixCdr($seq, 104, 116, 13);
-		#print $cdr3 . "\n";
+		#print "cdr3: $cdr3\n";
 	}
+	
 	return join("", @seq[0..25]) 
 		. $cdr1 
 		. join("", @seq[38..54]) 
@@ -176,33 +153,6 @@ sub fixCdr
 	return join("", @fixed_cdr);
 }
 
-#sub outIMGT
-#{
-#	my ($header, $sequence, $domain, $gc_rf) = @_;
-#	$header =~ s/>//;
-#	my $outputText ="# Domain: $domain\n# Sequence: $header\n";
-#	my @seq = split('', $sequence);
-#	my $index = 0;
-#	my @gc_rf = split('', $gc_rf);
-#	my $insert_char = 'a';
-#	for(my $i =0; $i < (@seq); $i++)
-#	{
-#		my $current_char = uc($seq[$i]);
-#		if($index > 110 and $gc_rf[$i] eq '.')
-#		{
-#			$outputText .=  "$current_char\t$index $insert_char\t\n";
-#			$insert_char = chr(ord($insert_char) + 1);
-#		}
-#		else
-#		{
-#			$index++;
-#			$outputText .=  "$current_char\t$index\t\n";
-#		}
-		
-#		
-#	}
-#	return $outputText . "//\n";
-#}
 
 sub outIMGT
 {
@@ -251,11 +201,11 @@ sub outIMGT
 sub writeFastaToTMP
 {
 	my ($header, $seq) = @_;
-	my ($tmp_fh, $toAlignFile) = tempfile();
+	my ($tmp_fh, $tmpFile) = tempfile();
 	print $tmp_fh ">" . $header . "\n";
 	print $tmp_fh $seq;
 	close($tmp_fh);
-	return $toAlignFile;
+	return $tmpFile;
 }
 
 sub usage
@@ -273,39 +223,47 @@ GetOptions(
 	"input|i=s" => \$seqFile,
 ) or usage();
 
-unless (defined $seqFile)
-{
-	print "Error: --input or -i is a required parameter\n";
-	usage();
-}
-
 $numberingScheme ||= 'imgt';
 
 if(!$supportedSchemes{lc($numberingScheme)})
 {
-	warn "This sheme is not supported: $numberingScheme\n";
+	warn "This scheme is not supported: $numberingScheme\n";
 	print "Supported schemes:\n";
 	die join("\n", keys %supportedSchemes), "\n";
 }
 
-
-my $fastaSequences_ref = readFasta($seqFile);
-
-
-my $seqInfo_ref = findBestDomain($seqFile);
-my $output = '';
-for my $seq (@{$fastaSequences_ref})
+my $fh = *STDIN;
+if($seqFile)
 {
-	my $id = $seq->{header};
-	if($seq->{header} =~ /^(\S+)\s/)
+	open($fh, '<', $seqFile)
+		or die "Could not open file: $outputFile";
+}
+my @seq_objects;
+{
+	local $/ = "\n>";  
+	while(my $record = <$fh>)
 	{
-		$id = $1;
+		chomp $record;
+		$record =~ s/^>//;
+		
+		my $seq_ref = readFasta($record);
+		my $domain_ref = findBestDomain($seq_ref -> {id}, $seq_ref->{seq});
+		my $new_seq_obj = Seq->new($seq_ref, $domain_ref);
+		push @seq_objects, $new_seq_obj;
 	}
-	my $toAlignFile = writeFastaToTMP($seq->{header}, $seq->{seq});
-	my ($header, $sequence) = alignToDomain($toAlignFile, $seqInfo_ref -> {$id}->{domain});
+
+	close($fh) if $seqFile;
+}
+
+
+my $output = '';
+for my $obj (@seq_objects)
+{
+	my $toAlignFile = writeFastaToTMP($obj->{id}, $obj->{seq});
+	my ($header, $sequence) = alignToDomain($toAlignFile, $obj->{domain});
 	my ($fixedSeq,$insertion_count) = fixAlignment($sequence);
 	#print $insertion_count . "\n";
-	$output .= outIMGT($seq->{header}, $fixedSeq, $seqInfo_ref -> {$id}->{domain},$insertion_count);
+	$output .= outIMGT($obj->{header}, $fixedSeq, $obj->{domain}, $insertion_count);
 	unlink $toAlignFile or warn "Could not unlink $toAlignFile: $!";
 }
 

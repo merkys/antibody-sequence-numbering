@@ -8,39 +8,17 @@ our @EXPORT_OK = qw(readFasta);
 
 sub readFasta
 {
-	my ($fastaFile) = @_;
-	
-	my @sequences;
-	my ($current_header, $current_seq) = ('','');
-	
-	open(my $fasta_fh, "<", $fastaFile)
-		or die "Could not open fasta file: $fastaFile";
-		
-	while(my $line = <$fasta_fh>)
-	{
-		chomp($line);
-		next if $line =~ /^\s*$/;
-		if($line =~ /^>(.+)/)
-		{
-			push @sequences, {
-						header => $current_header,
-						seq => $current_seq
-					} if $current_seq;
-			$current_header = $1;
-			$current_seq = '';
-		}
-		else
-		{
-			$current_seq .= $line;
-		}
-	}
-	
-	push @sequences, {
-				header => $current_header,
-				seq => $current_seq
-			} if $current_seq;
-	close($fasta_fh);
-	return \@sequences;
-}
+	my ($record) = @_;
+	my ($header, @seq_lines) = split(/\n/, $record);
+	my $seq = join('', @seq_lines);
 
+       
+	my $id = $header;
+	if ($id =~ /^(\S+)/)
+	{
+		$id = $1;
+	}
+
+	return {header => $header, seq => $seq, id =>$id};
+}
 1;
