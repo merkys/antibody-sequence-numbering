@@ -244,8 +244,8 @@ IGLJ_NUC_FASTA_MUS = ${NUC_FASTA_JOININGS_MUS}/IGL.fasta
 IGKV_NUC_FASTA_MUS = ${NUC_FASTA_VARIABLE_MUS}/IGK.fasta
 IGKJ_NUC_FASTA_MUS = ${NUC_FASTA_JOININGS_MUS}/IGK.fasta
 
-IGJ_NUC_FILES_MUS = ${IGHJ_NUC_FASTA_MUS} ${IGLJ_NUC_FASTA_MUS} ${IGKJ_NUC_FASTA_MUS}
-IGV_NUC_FILES_MUS = ${IGHV_NUC_FASTA_MUS} ${IGLV_NUC_FASTA_MUS} ${IGKV_NUC_FASTA_MUS}
+IGJ_NUC_FILES_MUS = ${IGHJ_NUC_FASTA_MUS} ${IGKJ_NUC_FASTA_MUS}
+IGV_NUC_FILES_MUS = ${IGHV_NUC_FASTA_MUS} ${IGKV_NUC_FASTA_MUS}
 
 PROT_IGJ_MUS = $(patsubst ${NUC_FASTA_JOININGS_MUS}/%.fasta,${PROT_FASTA_JOININGS_MUS}/%.fasta,${IGJ_NUC_FILES_MUS})
 PROT_IGV_MUS = $(patsubst ${NUC_FASTA_VARIABLE_MUS}/%.fasta,${PROT_FASTA_VARIABLE_MUS}/%.fasta,${IGV_NUC_FILES_MUS})
@@ -253,7 +253,7 @@ PROT_IGV_MUS = $(patsubst ${NUC_FASTA_VARIABLE_MUS}/%.fasta,${PROT_FASTA_VARIABL
 COMBINED_H_MUS = ${COMBINED_DIR_MUS}/IGH.fasta
 COMBINED_K_MUS = ${COMBINED_DIR_MUS}/IGK.fasta
 COMBINED_L_MUS = ${COMBINED_DIR_MUS}/IGL.fasta
-COMBINED_FILES_MUS = ${COMBINED_L_MUS} ${COMBINED_K_MUS} ${COMBINED_H_MUS}
+COMBINED_FILES_MUS = ${COMBINED_K_MUS} ${COMBINED_H_MUS}
 
 ##  Stockholm Files ----------------------------------------------------------------------------------------
 STOCKHOLM_FILES_MUS = $(patsubst ${COMBINED_DIR_MUS}/%.fasta, ${STOCKHOLM_DIR_MUS}/%.stockholm,${COMBINED_FILES_MUS})
@@ -261,11 +261,11 @@ STOCKHOLM_FILES_MUS = $(patsubst ${COMBINED_DIR_MUS}/%.fasta, ${STOCKHOLM_DIR_MU
 HMMS_MUS = $(patsubst ${STOCKHOLM_DIR_MUS}/%.stockholm, ${HMMS_DIR_MUS}/%.hmm,${STOCKHOLM_FILES_MUS})
 
 
-prepare_mus_muluscus_hmm: ${PROT_IGJ_MUS} ${PROT_IGV_MUS}
+prepare_mus_muluscus_hmm: ${HMMS_MUS}
 
 
 ${HMMS_DIR_MUS}/%.hmm: ${STOCKHOLM_DIR_MUS}/%.stockholm
-	hmmbuild --hand $@ $<
+	hmmbuild --hand -n mus_muluscus_$* $@ $<
 
 
 ${STOCKHOLM_DIR_MUS}/%.stockholm: ${COMBINED_DIR_MUS}/%.fasta
@@ -288,4 +288,28 @@ ${STOCKHOLM_FILES_MUS}: ${COMBINED_FILES_MUS}
 
 
 ${COMBINED_FILES_MUS}: ${PROT_IGV_MUS} ${PROT_IGJ_MUS}
+
+
+clean_mus_port:
+	rm -rf ${PROT_IGV_MUS} ${PROT_IGJ_MUS}
+
+
+clean_mus_combined:
+	rm -rf ${COMBINED_FILES_MUS}
+
+
+clean_mus_stockholm:
+	rm -rf ${STOCKHOLM_FILES_MUS}
+
+
+clean_mus_hmms:
+	rm -rf ${HMMS_MUS}
+	
+
+distclean_mus:
+	$(MAKE) clean_mus_port
+	$(MAKE) clean_mus_combined
+	$(MAKE) clean_mus_stockholm
+	$(MAKE) clean_mus_hmms
+	
 
