@@ -101,7 +101,7 @@ SCRIPTS_HMM_PREPARE = ${SCRIPTS}/hmms_prepare
 SCRIPTS_OUT_HMM_PREPARE = ${SCRIPTS_OUTPUT}/hmms_prepare
 COMBINED_HMM = ${HMMS_DIR}/IG_combined.hmm
 
-AVAILABLE_ORGANISMS = homo_sapiens  mus_musculus
+AVAILABLE_ORGANISMS = homo_sapiens  mus_muluscus
 
 prepare_hmm_data_base: ${COMBINED_HMM}
 
@@ -110,6 +110,15 @@ ${COMBINED_HMM}: prepare_homo_sapiens_hmm prepare_mus_muluscus_hmm
 	cat $(foreach org, $(AVAILABLE_ORGANISMS), $(HMMS_DIR)/$(org)/*) > $@; \
 	hmmpress $@;
 
+
+clean_combined_hmm:
+	rm ${COMBINED_HMM}*
+	
+
+distclean_all_hmm:
+	$(MAKE) clean_combined_hmm
+	$(MAKE) distclean_homo
+	$(MAKE) distclean_mus
 
 ### Scripts
 COMBINE = ${SCRIPTS_HMM_PREPARE}/combine_VJ
@@ -212,6 +221,29 @@ ${IGKV_NUC_FASTA_HOMO}:
 	
 ${IGKJ_NUC_FASTA_HOMO}:
 	curl -s ${OGRDB_K_HOMO} | grep -A 1 '^>IGKJ' > $@
+
+
+clean_homo_port:
+	rm -rf ${PROT_IGV_HOMO} ${PROT_IGJ_HOMO}
+
+
+clean_homo_combined:
+	rm -rf ${COMBINED_FILES_HOMO}
+
+
+clean_homo_stockholm:
+	rm -rf ${STOCKHOLM_FILES_HOMO}
+
+
+clean_homo_hmms:
+	rm -rf ${HMMS_HOMO}
+	
+
+distclean_homo:
+	$(MAKE) clean_homo_port
+	$(MAKE) clean_homo_combined
+	$(MAKE) clean_homo_stockholm
+	$(MAKE) clean_homo_hmms
 
 #--------------------------------------------------------------------------------------------------------
 
