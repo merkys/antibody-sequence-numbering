@@ -96,112 +96,196 @@ prepare_dirs:
 
 # Prepare hmms
 ## Dirs ------------------------------------------------------------------------------------------------------------
-HMM_DIRS = ${VARIABLE} ${JOINING} ${FASTA_JOININGS} ${FASTA_VARIABLE} ${PROT_FASTA_JOININGS} ${NUC_FASTA_JOININGS} ${PROT_FASTA_VARIABLE} ${NUC_FASTA_VARIABLE} ${VARIABLE_HMMS} ${JOINING_HMMS} ${SCRIPTS_HMM_PREPARE} ${SCRIPTS_OUT_HMM_PREPARE} ${COMBINED_DIR} ${TRANSLATE_INFO_J_DIR} ${TRANSLATE_INFO_V_DIR} ${STOCKHOLM_DIR} ${HMMS_DIR}
-
-
+HMMS_DIR = hmms
 SCRIPTS_HMM_PREPARE = ${SCRIPTS}/hmms_prepare
 SCRIPTS_OUT_HMM_PREPARE = ${SCRIPTS_OUTPUT}/hmms_prepare
-COMBINED_DIR = ${SCRIPTS_OUT_HMM_PREPARE}/combined
-
-VARIABLE = ${SCRIPTS_OUT_HMM_PREPARE}/variable
-JOINING = ${SCRIPTS_OUT_HMM_PREPARE}/joinings
-
-STOCKHOLM_DIR = ${SCRIPTS_OUT_HMM_PREPARE}/stockholm
-HMMS_DIR = hmms
-## Links----------------------------------------------------------------------------------------------------------
-OGRDB_H = https://ogrdb.airr-community.org/api/germline/set/Human/IGH_VDJ/published/gapped_ex
-OGRDB_K = https://ogrdb.airr-community.org/api/germline/set/Human/IGKappa_VJ/published/gapped_ex
-OGRDB_L = https://ogrdb.airr-community.org/api/germline/set/Human/IGLambda_VJ/published/gapped_ex
-## Fasta files----------------------------------------------------------------------------------------------------
-FASTA_JOININGS = ${JOINING}/fasta
-FASTA_VARIABLE = ${VARIABLE}/fasta
-TRANSLATE_INFO_J_DIR = ${FASTA_JOININGS}/translate_info
-TRANSLATE_INFO_V_DIR = ${FASTA_VARIABLE}/translate_info
-PROT_FASTA_JOININGS = ${FASTA_JOININGS}/prot
-NUC_FASTA_JOININGS = ${FASTA_JOININGS}/nuc
-
-PROT_FASTA_VARIABLE = ${FASTA_VARIABLE}/prot
-NUC_FASTA_VARIABLE = ${FASTA_VARIABLE}/nuc
-
-IGHV_NUC_FASTA = ${NUC_FASTA_VARIABLE}/IGH.fasta
-IGHJ_NUC_FASTA = ${NUC_FASTA_JOININGS}/IGH.fasta
-
-IGLV_NUC_FASTA = ${NUC_FASTA_VARIABLE}/IGL.fasta
-IGLJ_NUC_FASTA = ${NUC_FASTA_JOININGS}/IGL.fasta
-
-IGKV_NUC_FASTA = ${NUC_FASTA_VARIABLE}/IGK.fasta
-IGKJ_NUC_FASTA = ${NUC_FASTA_JOININGS}/IGK.fasta
-
-IGJ_NUC_FILES = ${IGHJ_NUC_FASTA} ${IGLJ_NUC_FASTA} ${IGKJ_NUC_FASTA}
-IGV_NUC_FILES = ${IGHV_NUC_FASTA} ${IGLV_NUC_FASTA} ${IGKV_NUC_FASTA}
-
-PROT_IGJ = $(patsubst ${NUC_FASTA_JOININGS}/%.fasta,${PROT_FASTA_JOININGS}/%.fasta,${IGJ_NUC_FILES})
-PROT_IGV = $(patsubst ${NUC_FASTA_VARIABLE}/%.fasta,${PROT_FASTA_VARIABLE}/%.fasta,${IGV_NUC_FILES})
-
-## Combined Files ------------------------------------------------------------------------------------------
-COMBINED_H = ${COMBINED_DIR}/IGH.fasta
-COMBINED_K = ${COMBINED_DIR}/IGK.fasta
-COMBINED_L = ${COMBINED_DIR}/IGL.fasta
-COMBINED_FILES = ${COMBINED_L} ${COMBINED_K} ${COMBINED_H}
-
-##  Stockholm Files ----------------------------------------------------------------------------------------
-STOCKHOLM_FILES = $(patsubst ${COMBINED_DIR}/%.fasta, ${STOCKHOLM_DIR}/%.stockholm,${COMBINED_FILES})
-
-## HMMs ----------------------------------------------------------------------------------------------------
-HMMS = $(patsubst ${STOCKHOLM_DIR}/%.stockholm, ${HMMS_DIR}/%.hmm,${STOCKHOLM_FILES})
 COMBINED_HMM = ${HMMS_DIR}/IG_combined.hmm
+
+AVAILABLE_ORGANISMS = homo_sapiens  mus_musculus
+
+prepare_hmm_data_base: ${COMBINED_HMM}
+
+
+${COMBINED_HMM}: prepare_homo_sapiens_hmm prepare_mus_muluscus_hmm
+	cat $(foreach org, $(AVAILABLE_ORGANISMS), $(HMMS_DIR)/$(org)/*) > $@; \
+	hmmpress $@;
+
+
 ### Scripts
 COMBINE = ${SCRIPTS_HMM_PREPARE}/combine_VJ
 TRANSLATE = ${SCRIPTS_HMM_PREPARE}/translateGenes
 CONVERT_TO_STOCKHOLM = ${SCRIPTS_HMM_PREPARE}/stockholmConverter
 
-update_hmms: ${COMBINED_HMM} ${HMMS}
+HMM_DIRS = ${HMMS_DIR} ${SCRIPTS_OUT_HMM_PREPARE} ${SCRIPTS_HMM_PREPARE} ${HMM_HOMO_DIRS} ${HMM_MUS_DIRS}
+
+
+HMM_HOMO_DIRS = ${VARIABLE_HOMO} ${JOINING_HOMO} ${PROT_FASTA_VARIABLE_HOMO} ${NUC_FASTA_VARIABLE_HOMO} ${NUC_FASTA_JOININGS_HOMO} ${PROT_FASTA_JOININGS_HOMO} ${COMBINED_DIR_HOMO} ${TRANSLATE_INFO_J_DIR_HOMO} ${TRANSLATE_INFO_V_DIR_HOMO} ${STOCKHOLM_DIR_HOMO} ${HMM_HOMO_DIR} ${HMMS_DIR_HOMO}
+
+HMMS_DIR_HOMO = ${HMMS_DIR}/homo_sapiens
+HMM_HOMO_DIR = ${SCRIPTS_OUT_HMM_PREPARE}/homo_sapiens
+COMBINED_DIR_HOMO = ${HMM_HOMO_DIR}/combined
+
+VARIABLE_HOMO = ${HMM_HOMO_DIR}/variable
+JOINING_HOMO = ${HMM_HOMO_DIR}/joinings
+
+STOCKHOLM_DIR_HOMO = ${HMM_HOMO_DIR}/stockholm
+
+## Links----------------------------------------------------------------------------------------------------------
+OGRDB_H_HOMO = https://ogrdb.airr-community.org/api/germline/set/Human/IGH_VDJ/published/gapped_ex
+OGRDB_K_HOMO = https://ogrdb.airr-community.org/api/germline/set/Human/IGKappa_VJ/published/gapped_ex
+OGRDB_L_HOMO = https://ogrdb.airr-community.org/api/germline/set/Human/IGLambda_VJ/published/gapped_ex
+## Fasta files----------------------------------------------------------------------------------------------------
+TRANSLATE_INFO_J_DIR_HOMO = ${JOINING_HOMO}/translate_info
+TRANSLATE_INFO_V_DIR_HOMO = ${VARIABLE_HOMO}/translate_info
+
+PROT_FASTA_JOININGS_HOMO = ${JOINING_HOMO}/prot
+NUC_FASTA_JOININGS_HOMO = ${JOINING_HOMO}/nuc
+
+PROT_FASTA_VARIABLE_HOMO = ${VARIABLE_HOMO}/prot
+NUC_FASTA_VARIABLE_HOMO = ${VARIABLE_HOMO}/nuc
+
+IGHV_NUC_FASTA_HOMO = ${NUC_FASTA_VARIABLE_HOMO}/IGH.fasta
+IGHJ_NUC_FASTA_HOMO = ${NUC_FASTA_JOININGS_HOMO}/IGH.fasta
+
+IGLV_NUC_FASTA_HOMO = ${NUC_FASTA_VARIABLE_HOMO}/IGL.fasta
+IGLJ_NUC_FASTA_HOMO = ${NUC_FASTA_JOININGS_HOMO}/IGL.fasta
+
+IGKV_NUC_FASTA_HOMO = ${NUC_FASTA_VARIABLE_HOMO}/IGK.fasta
+IGKJ_NUC_FASTA_HOMO = ${NUC_FASTA_JOININGS_HOMO}/IGK.fasta
+
+IGJ_NUC_FILES_HOMO = ${IGHJ_NUC_FASTA_HOMO} ${IGLJ_NUC_FASTA_HOMO} ${IGKJ_NUC_FASTA_HOMO}
+IGV_NUC_FILES_HOMO = ${IGHV_NUC_FASTA_HOMO} ${IGLV_NUC_FASTA_HOMO} ${IGKV_NUC_FASTA_HOMO}
+
+PROT_IGJ_HOMO = $(patsubst ${NUC_FASTA_JOININGS_HOMO}/%.fasta,${PROT_FASTA_JOININGS_HOMO}/%.fasta,${IGJ_NUC_FILES_HOMO})
+PROT_IGV_HOMO = $(patsubst ${NUC_FASTA_VARIABLE_HOMO}/%.fasta,${PROT_FASTA_VARIABLE_HOMO}/%.fasta,${IGV_NUC_FILES_HOMO})
+
+## Combined Files ------------------------------------------------------------------------------------------
+COMBINED_H_HOMO = ${COMBINED_DIR_HOMO}/IGH.fasta
+COMBINED_K_HOMO = ${COMBINED_DIR_HOMO}/IGK.fasta
+COMBINED_L_HOMO = ${COMBINED_DIR_HOMO}/IGL.fasta
+COMBINED_FILES_HOMO = ${COMBINED_L_HOMO} ${COMBINED_K_HOMO} ${COMBINED_H_HOMO}
+
+##  Stockholm Files ----------------------------------------------------------------------------------------
+STOCKHOLM_FILES_HOMO = $(patsubst ${COMBINED_DIR_HOMO}/%.fasta, ${STOCKHOLM_DIR_HOMO}/%.stockholm,${COMBINED_FILES_HOMO})
+## HMMs ----------------------------------------------------------------------------------------------------
+HMMS_HOMO = $(patsubst ${STOCKHOLM_DIR_HOMO}/%.stockholm, ${HMMS_DIR_HOMO}/%.hmm,${STOCKHOLM_FILES_HOMO})
+
+prepare_homo_sapiens_hmm: ${HMMS_HOMO}
 	
 
-${COMBINED_HMM}: ${HMMS}
-	cat $^ > $@; \
-	hmmpress $@;
+${HMMS_DIR_HOMO}/%.hmm: ${STOCKHOLM_DIR_HOMO}/%.stockholm
+	hmmbuild -n homo_sapiens_$* --hand $@ $<
 
-${HMMS_DIR}/%.hmm: ${STOCKHOLM_DIR}/%.stockholm
-	hmmbuild --hand $@ $<
-
-${STOCKHOLM_DIR}/%.stockholm: ${COMBINED_DIR}/%.fasta
+${STOCKHOLM_DIR_HOMO}/%.stockholm: ${COMBINED_DIR_HOMO}/%.fasta
 	./${CONVERT_TO_STOCKHOLM} $< >$@
 
-${COMBINED_DIR}/%.fasta: ${PROT_FASTA_VARIABLE}/%.fasta ${PROT_FASTA_JOININGS}/%.fasta
+${COMBINED_DIR_HOMO}/%.fasta: ${PROT_FASTA_VARIABLE_HOMO}/%.fasta ${PROT_FASTA_JOININGS_HOMO}/%.fasta
 	./${COMBINE} $< $(word 2,$^) >$@
 
 
-${PROT_FASTA_VARIABLE}/%.fasta: ${NUC_FASTA_VARIABLE}/%.fasta ${TRANSLATE_INFO_V_DIR}/%.info
+${PROT_FASTA_VARIABLE_HOMO}/%.fasta: ${NUC_FASTA_VARIABLE_HOMO}/%.fasta ${TRANSLATE_INFO_V_DIR_HOMO}/%.info
 	./${TRANSLATE} $< $(word 2,$^) > $@
 
-${PROT_FASTA_JOININGS}/%.fasta: ${NUC_FASTA_JOININGS}/%.fasta ${TRANSLATE_INFO_J_DIR}/%.info
+${PROT_FASTA_JOININGS_HOMO}/%.fasta: ${NUC_FASTA_JOININGS_HOMO}/%.fasta ${TRANSLATE_INFO_J_DIR_HOMO}/%.info
 	./${TRANSLATE} $< $(word 2,$^) > $@
 
 
 
-${STOCKHOLM_FILES}: ${COMBINED_FILES}
+${STOCKHOLM_FILES_HOMO}: ${COMBINED_FILES_HOMO}
 
-${COMBINED_FILES}: ${PROT_IGV} ${PROT_IGJ}
+${COMBINED_FILES_HOMO}: ${PROT_IGV_HOMO} ${PROT_IGJ_HOMO}
 
-${IGHV_NUC_FASTA}:
-	curl -s ${OGRDB_H} | grep -A 6 '^>IGHV' > $@
+${IGHV_NUC_FASTA_HOMO}:
+	curl -s ${OGRDB_H_HOMO} | grep -A 6 '^>IGHV' > $@
 	
-${IGHJ_NUC_FASTA}:
-	curl -s ${OGRDB_H} | grep -A 2 '^>IGHJ' > $@
+${IGHJ_NUC_FASTA_HOMO}:
+	curl -s ${OGRDB_H_HOMO} | grep -A 2 '^>IGHJ' > $@
 	
-${IGLV_NUC_FASTA}:
-	curl -s ${OGRDB_L} | grep -A 6 '^>IGLV' > $@
+${IGLV_NUC_FASTA_HOMO}:
+	curl -s ${OGRDB_L_HOMO} | grep -A 6 '^>IGLV' > $@
 	
-${IGLJ_NUC_FASTA}:
-	curl -s ${OGRDB_L} | grep -A 1 '^>IGLJ' > $@
+${IGLJ_NUC_FASTA_HOMO}:
+	curl -s ${OGRDB_L_HOMO} | grep -A 1 '^>IGLJ' > $@
 
-${IGKV_NUC_FASTA}:
-	curl -s ${OGRDB_K} | grep -A 6 '^>IGKV' > $@
+${IGKV_NUC_FASTA_HOMO}:
+	curl -s ${OGRDB_K_HOMO} | grep -A 6 '^>IGKV' > $@
 	
-${IGKJ_NUC_FASTA}:
-	curl -s ${OGRDB_K} | grep -A 1 '^>IGKJ' > $@
+${IGKJ_NUC_FASTA_HOMO}:
+	curl -s ${OGRDB_K_HOMO} | grep -A 1 '^>IGKJ' > $@
 
 #--------------------------------------------------------------------------------------------------------
 
+HMM_MUS_DIRS = ${VARIABLE_MUS} ${JOINING_MUS} ${PROT_FASTA_VARIABLE_MUS} ${NUC_FASTA_VARIABLE_MUS} ${PROT_FASTA_JOININGS_MUS} ${NUC_FASTA_JOININGS_MUS} ${COMBINED_DIR_MUS} ${TRANSLATE_INFO_J_DIR_MUS} ${TRANSLATE_INFO_V_DIR_MUS} ${STOCKHOLM_DIR_MUS} ${HMM_OUT_MUS} ${HMMS_DIR_MUS}
+
+VARIABLE_MUS = ${HMM_OUT_MUS}/variable
+JOINING_MUS = ${HMM_OUT_MUS}/joinings
+
+STOCKHOLM_DIR_MUS= ${HMM_OUT_MUS}/stockholm
+
+HMMS_DIR_MUS = ${HMMS_DIR}/mus_muluscus
+HMM_OUT_MUS = ${SCRIPTS_OUT_HMM_PREPARE}/mus_muluscus
+COMBINED_DIR_MUS = ${HMM_OUT_MUS}/combined
+
+TRANSLATE_INFO_J_DIR_MUS = ${JOINING_MUS}/translate_info
+TRANSLATE_INFO_V_DIR_MUS = ${VARIABLE_MUS}/translate_info
+
+PROT_FASTA_JOININGS_MUS = ${JOINING_MUS}/prot
+NUC_FASTA_JOININGS_MUS = ${JOINING_MUS}/nuc
+
+PROT_FASTA_VARIABLE_MUS = ${VARIABLE_MUS}/prot
+NUC_FASTA_VARIABLE_MUS = ${VARIABLE_MUS}/nuc
+
+IGHV_NUC_FASTA_MUS = ${NUC_FASTA_VARIABLE_MUS}/IGH.fasta
+IGHJ_NUC_FASTA_MUS = ${NUC_FASTA_JOININGS_MUS}/IGH.fasta
+
+IGLV_NUC_FASTA_MUS = ${NUC_FASTA_VARIABLE_MUS}/IGL.fasta
+IGLJ_NUC_FASTA_MUS = ${NUC_FASTA_JOININGS_MUS}/IGL.fasta
+
+IGKV_NUC_FASTA_MUS = ${NUC_FASTA_VARIABLE_MUS}/IGK.fasta
+IGKJ_NUC_FASTA_MUS = ${NUC_FASTA_JOININGS_MUS}/IGK.fasta
+
+IGJ_NUC_FILES_MUS = ${IGHJ_NUC_FASTA_MUS} ${IGLJ_NUC_FASTA_MUS} ${IGKJ_NUC_FASTA_MUS}
+IGV_NUC_FILES_MUS = ${IGHV_NUC_FASTA_MUS} ${IGLV_NUC_FASTA_MUS} ${IGKV_NUC_FASTA_MUS}
+
+PROT_IGJ_MUS = $(patsubst ${NUC_FASTA_JOININGS_MUS}/%.fasta,${PROT_FASTA_JOININGS_MUS}/%.fasta,${IGJ_NUC_FILES_MUS})
+PROT_IGV_MUS = $(patsubst ${NUC_FASTA_VARIABLE_MUS}/%.fasta,${PROT_FASTA_VARIABLE_MUS}/%.fasta,${IGV_NUC_FILES_MUS})
+
+COMBINED_H_MUS = ${COMBINED_DIR_MUS}/IGH.fasta
+COMBINED_K_MUS = ${COMBINED_DIR_MUS}/IGK.fasta
+COMBINED_L_MUS = ${COMBINED_DIR_MUS}/IGL.fasta
+COMBINED_FILES_MUS = ${COMBINED_L_MUS} ${COMBINED_K_MUS} ${COMBINED_H_MUS}
+
+##  Stockholm Files ----------------------------------------------------------------------------------------
+STOCKHOLM_FILES_MUS = $(patsubst ${COMBINED_DIR_MUS}/%.fasta, ${STOCKHOLM_DIR_MUS}/%.stockholm,${COMBINED_FILES_MUS})
+## HMMs ----------------------------------------------------------------------------------------------------
+HMMS_MUS = $(patsubst ${STOCKHOLM_DIR_MUS}/%.stockholm, ${HMMS_DIR_MUS}/%.hmm,${STOCKHOLM_FILES_MUS})
+
+
+prepare_mus_muluscus_hmm: ${PROT_IGJ_MUS} ${PROT_IGV_MUS}
+
+
+${HMMS_DIR_MUS}/%.hmm: ${STOCKHOLM_DIR_MUS}/%.stockholm
+	hmmbuild --hand $@ $<
+
+
+${STOCKHOLM_DIR_MUS}/%.stockholm: ${COMBINED_DIR_MUS}/%.fasta
+	./${CONVERT_TO_STOCKHOLM} $< >$@
+
+
+${COMBINED_DIR_MUS}/%.fasta: ${PROT_FASTA_VARIABLE_MUS}/%.fasta ${PROT_FASTA_JOININGS_MUS}/%.fasta
+	./${COMBINE} $< $(word 2,$^) >$@
+
+
+${PROT_FASTA_VARIABLE_MUS}/%.fasta: ${NUC_FASTA_VARIABLE_MUS}/%.fasta ${TRANSLATE_INFO_V_DIR_MUS}/%.info
+	./${TRANSLATE} $< $(word 2,$^) > $@
+
+
+${PROT_FASTA_JOININGS_MUS}/%.fasta: ${NUC_FASTA_JOININGS_MUS}/%.fasta ${TRANSLATE_INFO_J_DIR_MUS}/%.info
+	./${TRANSLATE} $< $(word 2,$^) > $@
+
+
+${STOCKHOLM_FILES_MUS}: ${COMBINED_FILES_MUS}
+
+
+${COMBINED_FILES_MUS}: ${PROT_IGV_MUS} ${PROT_IGJ_MUS}
 

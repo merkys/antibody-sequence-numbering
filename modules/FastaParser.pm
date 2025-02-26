@@ -11,7 +11,7 @@ sub readFasta
 	my ($record) = @_;
 	my ($header, @seq_lines) = split(/\n/, $record);
 	my $seq = join('', @seq_lines);
-
+	my @residue = split('', $seq);
        
 	my $id = $header;
 	if ($id =~ /^(\S+)/)
@@ -19,6 +19,6 @@ sub readFasta
 		$id = $1;
 	}
 
-	return {header => $header, seq => $seq, id =>$id};
+	return {header => $header, seq => \@residue, id =>$id};
 }
 1;

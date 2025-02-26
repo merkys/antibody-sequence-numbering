@@ -10,12 +10,25 @@ use POSIX qw(ceil);
 our @EXPORT_OK = qw(findBestDomain alignToDomain checkInsertion numberSeq fixAlignment outIMGT);
 our %EXPORT_TAGS = ( ALL => \@EXPORT_OK );
 
+
+sub writeFastaToTMP
+{
+	my ($header, $seq_ref) = @_;
+	my ($tmp_fh, $tmpFile) = tempfile();
+	print $tmp_fh ">" . $header . "\n";
+	print $tmp_fh join('', @$seq_ref), "\n";
+	close($tmp_fh);
+	return $tmpFile
+}
+
+
 sub findBestDomain
 {
-	my ($seq_file) = @_;
+	my ($seq_id, $seq_array_ref) = @_;
+	my $seqFile = writeFastaToTMP($seq_id, $seq_array_ref);
 	my ($fh, $domTblout) = tempfile();
 	close($fh);
-	my $hmmScanResult = qx(hmmscan --domT 100 -T 100 --domtblout $domTblout --noali ../hmms/IG_combined.hmm $seq_file);
+	my $hmmScanResult = qx(hmmscan --domT 100 -T 100 --domtblout $domTblout --noali ../hmms/IG_combined.hmm $seqFile);
 	
 	open(my $tblout_fh, "<", $domTblout)
 		or die "Could not open hmmscan domain table out file: $domTblout";
@@ -26,11 +39,15 @@ sub findBestDomain
 	my $bestDomain = {};
 	while(my $line = <$tblout_fh>)
 	{
-		
 		next if $line =~ /^#/;
 		my @field = split(/\s+/, $line);
+		$field[0] =~ /^(\S+)_(\S+)$/;
+		my $organism = $1;
+		my $domain = $2;
+		#print $organism . " $domain\n";
 		my $seqInfo = {
-					domain	=> $field[0],
+					organism => $organism,
+					domain	=> $domain,
 					tLen 	=> $field[2],
 					qLen 	=> $field[5],
 					e_value	=> $field[6],	
@@ -49,19 +66,41 @@ sub findBestDomain
 		}
 	}
 	unlink $domTblout or warn "Could not unlink $domTblout: $!";
-	unlink $seq_file or warn "Could not unlink $seq_file: $!";
+	unlink $seqFile or warn "Could not unlink $seqFile: $!";
 	return $bestDomain;
 }
 
 sub alignToDomain
 {
-	my ($seqFile, $domain) = @_;
-	my $hmmAlignResults = qx(hmmalign --outformat afa --trim ../hmms/$domain.hmm $seqFile);
+	my ($seq_id, $seq_array_ref, $domain, $organism) = @_;
+	#print $organism . "\n";
+	my $seqFile = writeFastaToTMP($seq_id, $seq_array_ref);
+	my $hmmAlignResults = qx(hmmalign --outformat afa --trim ../hmms/$organism/$domain.hmm $seqFile);
 	my @hmmAlignResults = split("\n", $hmmAlignResults);
 	my $sequence = join("", @hmmAlignResults[1 .. $#hmmAlignResults]);
+	my @sequence = split('', $sequence);
+	my $residueIndex = 0;
 	
-	return $sequence;
+	#while($sequence[$residueIndex] eq '-')
+	#{
+	#	$residueIndex++;
+	#}
+	#print $residueIndex . "\n";
+	#for(my $i = 0; $i < $residueIndex+2; $i++)
+	#{
+	#	print $sequence[$i];
+	#}
+	#print "\n";
+	#for(my $i = 0; $i < $residueIndex+2; $i++)
+	#{
+	#	print uc($seq_array_ref->[$i]);
+	#}
+	#print "\n";
+	my $fixed_seq = join('', @sequence);
+	return $fixed_seq
 }
+
+
 
 sub checkInsertion
 {
@@ -186,9 +225,9 @@ sub numberSeq
 
 sub outIMGT
 {
-	my ($header, $sequence, $domain, $numbering_ref) = @_;
+	my ($header, $sequence, $domain, $organism, $numbering_ref) = @_;
 	$header =~ s/>//;
-	my $outputText ="# Domain: $domain\n# Sequence: $header\n";
+	my $outputText ="# Domain: $domain\n# Organism: $organism\n# Sequence: $header\n";
 	my @seq = split('', $sequence);
 	if ($seq[-1] eq '-')
 	{

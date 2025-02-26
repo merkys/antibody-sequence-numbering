@@ -11,12 +11,9 @@ sub new
 			header 	=> $seq_ref-> {header},
 			id 	=> $seq_ref-> {id},
 			domain 	=> $domain_ref-> {domain},
-			#tLen	=> $domain_ref-> {tLen},
-			#qLen 	=> $domain_ref-> {qLen},
-			#e_value	=> $domain_ref-> {e_value},
+			organism => $domain_ref-> {organism},
 			score	=> $domain_ref-> {score},
 			bias	=> $domain_ref-> {bias},
-			#acc	=> $domain_ref-> {acc},
 			FRs	=> [],
 			CDRs	=> [],
 			aligned_seq	=> '',
@@ -32,6 +29,12 @@ sub getDomain
 {
 	my ($self) = @_;
 	return $self -> {domain}
+}
+
+sub getOrganism
+{
+	my ($self) = @_;
+	return $self -> {organism}
 }
 
 sub getSeq

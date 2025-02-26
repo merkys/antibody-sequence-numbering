@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use Translate;
+
 my $genesFile = $ARGV[0];
 my $translateInfoFile = $ARGV[1];
 

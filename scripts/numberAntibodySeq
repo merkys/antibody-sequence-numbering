@@ -9,17 +9,8 @@ use File::Temp qw/ tempfile /;
 use FastaParser qw/ readFasta /;
 use Seq;
 use IMGT qw(:ALL);
+use Converter qw(:ALL);
 
-
-sub writeFastaToTMP
-{
-	my ($header, $seq) = @_;
-	my ($tmp_fh, $tmpFile) = tempfile();
-	print $tmp_fh ">" . $header . "\n";
-	print $tmp_fh $seq;
-	close($tmp_fh);
-	return $tmpFile;
-}
 
 sub usage
 {
@@ -58,10 +49,8 @@ my @seq_objects;
 	{
 		chomp $record;
 		$record =~ s/^>//;
-		
 		my $seq_ref = readFasta($record);
-		my $seq_file = writeFastaToTMP($seq_ref -> {id}, $seq_ref->{seq});
-		my $domain_ref = findBestDomain($seq_file);
+		my $domain_ref = findBestDomain($seq_ref -> {id}, $seq_ref->{seq});
 		my $new_seq_obj = Seq->new($seq_ref, $domain_ref);
 		push @seq_objects, $new_seq_obj;
 	}
@@ -71,15 +60,18 @@ my @seq_objects;
 
 
 my $output = '';
+my $convert_out ='';
 for my $obj (@seq_objects)
 {
-	my $toAlignFile = writeFastaToTMP($obj->getId(), $obj->getSeq());
-	$obj->setAlignedSeq(alignToDomain($toAlignFile, $obj->getDomain()));
+	#print$obj->getOrganism() . "\n";
+	$obj->setAlignedSeq(alignToDomain($obj->getId(), $obj->getSeq(), $obj->getDomain(), $obj->getOrganism()));
 	$obj->setInsertionCount(checkInsertion($obj->getAlignedSeq()));
 	$obj->setFixedSeq(fixAlignment($obj->getAlignedSeq(), $obj->getInsertionCount()));
 	$obj->setImgtNumbering(numberSeq($obj->getFixedSeq(), $obj->getInsertionCount()));
-	$output .= outIMGT($obj->getHeader(), $obj->getFixedSeq(), $obj->getDomain(), $obj->getImgtNumbering());
-	unlink $toAlignFile or warn "Could not unlink $toAlignFile: $!";
+	$output .= outIMGT($obj->getHeader(), $obj->getFixedSeq(),
+			$obj->getDomain(), $obj->getOrganism(),
+			$obj->getImgtNumbering());
+	#$convert_out .= convertToKabatHeavy($obj->getFixedSeq());
 }
 
 my $out_fh = *STDOUT;
