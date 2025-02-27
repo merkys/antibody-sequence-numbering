@@ -1,0 +1,10 @@
+scripts_out/hmms_prepare/homo_sapiens/combined/*
+scripts_out/hmms_prepare/homo_sapiens/joinings/nuc/*
+scripts_out/hmms_prepare/homo_sapiens/joinings/prot/*
+scripts_out/hmms_prepare/homo_sapiens/stockholm/*
+scripts_out/hmms_prepare/homo_sapiens/variable/nuc/*
+scripts_out/hmms_prepare/homo_sapiens/variable/prot/*
+scripts_out/hmms_prepare/mus_muluscus/combined/*
+scripts_out/hmms_prepare/mus_muluscus/joinings/prot/*
+scripts_out/hmms_prepare/mus_muluscus/stockholm/*
+scripts_out/hmms_prepare/mus_muluscus/variable/prot/*

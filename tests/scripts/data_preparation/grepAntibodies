@@ -1,0 +1,105 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use IO::Uncompress::Gunzip qw(gunzip $GunzipError);
+
+my $Sab_Dab_anotation_file = $ARGV[0];
+my $pdb_seq_file = $ARGV[1];
+my $out_dir = $ARGV[2];
+
+open my $fh, "<", $Sab_Dab_anotation_file
+    or die "Could not open file";
+
+my @heavy_chains;
+my @kappa_chains;
+my @lambda_chains;
+while(my $line =<$fh>)
+{
+    my @fields = split /\t/, $line;
+    if (@fields >= 25)
+    {
+        my $pdb_id = $fields[0];
+        my $heavy_chain_id = $fields[1];
+        my $light_chain_id = $fields[2];
+        my $heavy_chain_gene_subclass = $fields[22];
+        my $light_chain_gene_subclass = $fields[23];
+        if($heavy_chain_id ne 'NA' and $heavy_chain_id ne 'unknown')
+        {
+            push @heavy_chains, "$pdb_id" . "_" . "$heavy_chain_id";
+           
+        }
+        
+        if($light_chain_id ne 'NA' and $light_chain_id ne 'unknown')
+        {
+            if($light_chain_gene_subclass ne 'NA'
+                and $light_chain_gene_subclass ne 'unknown')
+            {
+                if($light_chain_gene_subclass =~ /IGLV/)
+                {
+                    push @lambda_chains, "$pdb_id" . "_" . "$light_chain_id";
+                }
+                else
+                {
+                    push @kappa_chains, "$pdb_id" . "_" . "$light_chain_id";
+                }
+            }
+        }
+    }
+}
+
+close $fh;
+my %seen_heavy = map { $_ => 1 } @heavy_chains;
+my %seen_kappa = map { $_ => 1 } @kappa_chains;
+my %seen_lambda = map { $_ => 1 } @lambda_chains;
+
+my $heavy_output = '';
+my $kappa_output = '';
+my $lambda_output = '';
+
+my $gh = IO::Uncompress::Gunzip->new($pdb_seq_file)
+    or die "Cannot open $pdb_seq_file: $GunzipError\n";
+    
+while(my $line = <$gh>)
+{
+    my $seq = <$gh>;
+    if($line =~ /^>(.{6})/)
+    {
+        if(exists $seen_heavy{$1})
+        {
+            $heavy_output .= $line . $seq;
+        }
+        
+        if(exists $seen_kappa{$1})
+        {
+            $kappa_output .= $line . $seq;
+        }
+        
+        if(exists $seen_lambda{$1})
+        {
+            $lambda_output .= $line . $seq;
+        }
+    }
+}
+
+$gh->close();
+
+open my $hh, '>', "$out_dir/IGH.fasta"
+    or die 'Could not open file';
+    
+print $hh $heavy_output;
+
+close $hh;    
+
+open my $lh, '>', "$out_dir/IGL.fasta"
+    or die 'Could not open file';
+    
+print $lh $lambda_output;
+
+close $lh;   
+
+open my $kh, '>', "$out_dir/IGK.fasta"
+    or die 'Could not open file';
+    
+print $kh $kappa_output;
+
+close $kh;   

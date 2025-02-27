@@ -9,7 +9,6 @@ MODULES = modules
 SCRIPTS = scripts
 SCRIPTS_OUTPUT = scripts_out
 
-${COMBINED_L}:
 # Prepare Data-------------------------------------------------------------------------------------------------------------------
 ## DIRS
 DATA_PREPARATION = ${SCRIPTS_OUTPUT}/dataPreparation
@@ -101,7 +100,7 @@ SCRIPTS_HMM_PREPARE = ${SCRIPTS}/hmms_prepare
 SCRIPTS_OUT_HMM_PREPARE = ${SCRIPTS_OUTPUT}/hmms_prepare
 COMBINED_HMM = ${HMMS_DIR}/IG_combined.hmm
 
-AVAILABLE_ORGANISMS = homo_sapiens  mus_muluscus
+AVAILABLE_ORGANISMS = homo_sapiens mus_muluscus
 
 prepare_hmm_data_base: ${COMBINED_HMM}
 

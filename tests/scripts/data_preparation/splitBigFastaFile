@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $fastaFileName = $ARGV[0];
+my $outDir = $ARGV[1];
+open my $fh, '<', $fastaFileName or die "Could not open file: $!";
+
+
+while(my $header = <$fh>)
+{
+    my $seq = <$fh>;
+    chomp($header);
+    chomp($seq);
+    $header =~ /^>(.{6})/;
+    my $pdb_id = $1;
+    my $output_file = "$outDir/$pdb_id.fasta";
+    open(my $out, '>', $output_file)
+        or die "Could not open file '$output_file': $!";
+	
+    print $out "$header\n$seq\n";
+	
+    close($out);
+}
+close($fh);
