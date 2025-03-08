@@ -73,29 +73,13 @@ sub findBestDomain
 sub alignToDomain
 {
 	my ($seq_id, $seq_array_ref, $domain, $organism) = @_;
-	#print $organism . "\n";
+	
 	my $seqFile = writeFastaToTMP($seq_id, $seq_array_ref);
 	my $hmmAlignResults = qx(hmmalign --outformat afa --trim ../hmms/$organism/$domain.hmm $seqFile);
 	my @hmmAlignResults = split("\n", $hmmAlignResults);
 	my $sequence = join("", @hmmAlignResults[1 .. $#hmmAlignResults]);
 	my @sequence = split('', $sequence);
 	my $residueIndex = 0;
-	
-	#while($sequence[$residueIndex] eq '-')
-	#{
-	#	$residueIndex++;
-	#}
-	#print $residueIndex . "\n";
-	#for(my $i = 0; $i < $residueIndex+2; $i++)
-	#{
-	#	print $sequence[$i];
-	#}
-	#print "\n";
-	#for(my $i = 0; $i < $residueIndex+2; $i++)
-	#{
-	#	print uc($seq_array_ref->[$i]);
-	#}
-	#print "\n";
 	my $fixed_seq = join('', @sequence);
 	return $fixed_seq
 }
@@ -120,6 +104,23 @@ sub fixAlignment
 {
 	my ($seq, $insertion_count) = @_;
 	my @seq = split('',$seq);
+	my $last_gap_pos = undef;
+	for(my $i = 0; $i < 104; $i++)
+	{
+	    if($seq[$i] eq '-')
+	    {
+	        $last_gap_pos = $i;
+	    }
+	    if($seq[$i] =~ /[a-z]/)
+	    {
+	        if($last_gap_pos)
+	        {
+	            #splice(@seq, $last_gap_pos, 1); 
+                $i--;
+                $last_gap_pos = undef;
+            }
+	    }
+	}
 	my $cdr1 = fixCdr($seq, 26, 37, 12);
 	my $cdr2 = fixCdr($seq, 55, 64, 10);
 	my $tillTheEnd_length = length(join("", @seq[104..$#seq]));
@@ -134,13 +135,14 @@ sub fixAlignment
 		$cdr3 = fixCdr($seq, 104, 116, 13);
 	}
 	
-	return join("", @seq[0..25]) 
-		. $cdr1 
-		. join("", @seq[38..54]) 
-		. $cdr2 
-		. join("", @seq[65..103]) 
-		. $cdr3 
-		. join("", @seq[117..$#seq]);
+    my $fixed_seq = join("", @seq[0..25]) 
+                    . $cdr1 
+                    . join("", @seq[38..54]) 
+                    . $cdr2 
+                    . join("", @seq[65..103]) 
+                    . $cdr3 
+                    . join("", @seq[117..$#seq]);
+    return $fixed_seq
 }
 
 sub fixCdr
