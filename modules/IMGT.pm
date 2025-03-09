@@ -115,14 +115,14 @@ sub fixAlignment
 	    {
 	        if($last_gap_pos)
 	        {
-	            #splice(@seq, $last_gap_pos, 1); 
+	            splice(@seq, $last_gap_pos, 1); 
                 $i--;
                 $last_gap_pos = undef;
             }
 	    }
 	}
-	my $cdr1 = fixCdr($seq, 26, 37, 12);
-	my $cdr2 = fixCdr($seq, 55, 64, 10);
+	my $cdr1 = fixCdr([@seq[26..37]], 12);
+	my $cdr2 = fixCdr([@seq[55..64]], 10);
 	my $tillTheEnd_length = length(join("", @seq[104..$#seq]));
 	my $cdr3;
 	if($insertion_count != 0)
@@ -132,7 +132,7 @@ sub fixAlignment
 	}
 	else
 	{
-		$cdr3 = fixCdr($seq, 104, 116, 13);
+		$cdr3 = fixCdr([@seq[104..116]], 13);
 	}
 	
     my $fixed_seq = join("", @seq[0..25]) 
@@ -147,15 +147,14 @@ sub fixAlignment
 
 sub fixCdr
 {
-	my ($seq, $cdr_start,$cdr_end, $cdr_max_length) = @_;
-	my @seq = split('',$seq);
+	my ($cdr_ref, $cdr_max_length) = @_;
+	#my @seq = split('',$seq);
 	
-	my @cdr = @seq[$cdr_start..$cdr_end];
+	#my @cdr = @seq[$cdr_start..$cdr_end];
 	my $cdr_current_length = 0;
 	my @no_gap_seq;
-	for my $residue (@cdr)
+	for my $residue (@$cdr_ref)
 	{
-		#print $residue;
 		if($residue ne "-")
 		{
 			$cdr_current_length++;

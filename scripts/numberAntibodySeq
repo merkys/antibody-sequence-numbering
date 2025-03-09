@@ -71,7 +71,7 @@ for my $obj (@seq_objects)
 	$output .= outIMGT($obj->getHeader(), $obj->getFixedSeq(),
 			$obj->getDomain(), $obj->getOrganism(),
 			$obj->getImgtNumbering());
-	#$convert_out .= convertToKabatHeavy($obj->getFixedSeq());
+	$convert_out .= convertToKabatHeavy($obj->getFixedSeq());
 }
 
 my $out_fh = *STDOUT;
@@ -80,6 +80,7 @@ if($outputFile)
 	open($out_fh, '>', $outputFile)
 		or die "Could not open file: $outputFile";
 }
-print $out_fh $output;
+#print $out_fh $output;
+print $out_fh $convert_out;
 close($out_fh) if $outputFile;
 
