@@ -9,7 +9,7 @@ use File::Temp qw/ tempfile /;
 use FastaParser qw/ readFasta /;
 use Seq;
 use IMGT qw(:ALL);
-use Converter qw(:ALL);
+use Converter::Converter qw(convertImgt);
 
 
 sub usage
@@ -17,7 +17,8 @@ sub usage
 	die "usage\n";
 }
 
-my %supportedSchemes = ('imgt' => 1);
+my %supportedSchemes = ('imgt' => 1,
+                        'kabat'=> 1);
 
 my ($numberingScheme, $seqFile, $outputFile);
 
@@ -63,24 +64,29 @@ my $output = '';
 my $convert_out ='';
 for my $obj (@seq_objects)
 {
-	#print$obj->getOrganism() . "\n";
-	$obj->setAlignedSeq(alignToDomain($obj->getId(), $obj->getSeq(), $obj->getDomain(), $obj->getOrganism()));
-	$obj->setInsertionCount(checkInsertion($obj->getAlignedSeq()));
-	$obj->setFixedSeq(fixAlignment($obj->getAlignedSeq(), $obj->getInsertionCount()));
-	$obj->setImgtNumbering(numberSeq($obj->getFixedSeq(), $obj->getInsertionCount()));
-	$output .= outIMGT($obj->getHeader(), $obj->getFixedSeq(),
-			$obj->getDomain(), $obj->getOrganism(),
-			$obj->getImgtNumbering());
-	$convert_out .= convertToKabatHeavy($obj->getFixedSeq());
+    #print$obj->getOrganism() . "\n";
+    $obj->setAlignedSeq(alignToDomain($obj->getId(), $obj->getSeq(), $obj->getDomain(), $obj->getOrganism()));
+    $obj->setInsertionCount(checkInsertion($obj->getAlignedSeq()));
+    $obj->setFixedSeq(fixAlignment($obj->getAlignedSeq(), $obj->getInsertionCount()));
+    $obj->setImgtNumbering(numberSeq($obj->getFixedSeq(), $obj->getInsertionCount()));
+    if($numberingScheme eq 'imgt')
+    {
+        $output .= outIMGT($obj->getHeader(), $obj->getFixedSeq(),
+                           $obj->getDomain(), $obj->getOrganism(),
+                           $obj->getImgtNumbering());
+    }
+    if($numberingScheme eq 'kabat')
+    {
+        $output .= convertImgt($obj->getFixedSeq(),$obj->getDomain(), $numberingScheme);
+    }
 }
 
 my $out_fh = *STDOUT;
 if($outputFile)
 {
-	open($out_fh, '>', $outputFile)
-		or die "Could not open file: $outputFile";
+    open($out_fh, '>', $outputFile)
+        or die "Could not open file: $outputFile";
 }
-#print $out_fh $output;
-print $out_fh $convert_out;
+print $out_fh $output;
 close($out_fh) if $outputFile;
 

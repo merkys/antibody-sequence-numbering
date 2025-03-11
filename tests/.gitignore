@@ -1,7 +1,8 @@
 data/*
 raw_data/homo_sapiense/fasta/*
 raw_data/homo_sapiense/sampled_fasta/*
-raw_data/mus_musculus/sampled_fasta/*
+raw_data/mus_musculus/fasta/*
 raw_data/mus_musculus/sampled_fasta/*
 diffs/*
 outputsAnarci/*
+raw_data/pdb_seqres.txt.gz
