@@ -45,8 +45,8 @@ sub countInsertions
 
 sub countInsertionsCdr3
 {
-    my ($cdr_array_ref) = @_;
-    my $insertions = scalar(@$cdr_array_ref) - 7 - 3;
+    my ($cdr_array_ref, $residues_untill_insertion_region) = @_;
+    my $insertions = scalar(@$cdr_array_ref) - $residues_untill_insertion_region - 3;
     return $insertions
 }
 
