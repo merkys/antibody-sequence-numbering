@@ -66,12 +66,7 @@ sub convrtToKabatLight_Lambda
        push @conveted_seq, @region;
     }
     
-    my $output = '';
-    for( my $i = 0; $i < @conveted_seq; $i++)
-    {
-        $output .= $conveted_seq[$i] . "\t" . $kabat_numbering[$i] . "\n";
-    }
-    return $output
+    return \@conveted_seq, \@kabat_numbering
 }
 
 sub convrtToKabatLight_Kappa
@@ -122,12 +117,7 @@ sub convrtToKabatLight_Kappa
        push @conveted_seq, @region;
     }
     
-    my $output = '';
-    for( my $i = 0; $i < @conveted_seq; $i++)
-    {
-        $output .= $conveted_seq[$i] . "\t" . $kabat_numbering[$i] . "\n";
-    }
-    return $output
+    return \@conveted_seq, \@kabat_numbering
 }
 
 
@@ -179,12 +169,7 @@ sub convertToKabatHeavy
        push @conveted_seq, @region;
     }
     
-    my $output = '';
-    for( my $i = 0; $i < @conveted_seq; $i++)
-    {
-        $output .= $conveted_seq[$i] . "\t" . $kabat_numbering[$i] . "\n";
-    }
-    return $output
+    return \@conveted_seq, \@kabat_numbering
 }
 
 1;

@@ -28,7 +28,7 @@ sub findBestDomain
 	my $seqFile = writeFastaToTMP($seq_id, $seq_array_ref);
 	my ($fh, $domTblout) = tempfile();
 	close($fh);
-	my $hmmScanResult = qx(hmmscan --domT 100 -T 100 --domtblout $domTblout --noali ../hmms/IG_combined.hmm $seqFile);
+	my $hmmScanResult = qx(hmmscan --domT 100 -T 100 --domtblout $domTblout --noali hmms/IG_combined.hmm $seqFile);
 	
 	open(my $tblout_fh, "<", $domTblout)
 		or die "Could not open hmmscan domain table out file: $domTblout";
@@ -75,7 +75,7 @@ sub alignToDomain
 	my ($seq_id, $seq_array_ref, $domain, $organism) = @_;
 	
 	my $seqFile = writeFastaToTMP($seq_id, $seq_array_ref);
-	my $hmmAlignResults = qx(hmmalign --outformat afa --trim ../hmms/$organism/$domain.hmm $seqFile);
+	my $hmmAlignResults = qx(hmmalign --outformat afa --trim hmms/$organism/$domain.hmm $seqFile);
 	my @hmmAlignResults = split("\n", $hmmAlignResults);
 	my $sequence = join("", @hmmAlignResults[1 .. $#hmmAlignResults]);
 	my @sequence = split('', $sequence);

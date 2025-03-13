@@ -75,9 +75,16 @@ for my $obj (@seq_objects)
                            $obj->getDomain(), $obj->getOrganism(),
                            $obj->getImgtNumbering());
     }
-    if($numberingScheme eq 'kabat')
+    if($numberingScheme ne 'imgt')
     {
-        $output .= convertImgt($obj->getFixedSeq(),$obj->getDomain(), $numberingScheme);
+        my ($converted_seq_ref, $numbering_ref) = convertImgt($obj->getFixedSeq(),
+                                                              $obj->getDomain(),
+                                                              $numberingScheme);
+        
+        my $converted_seq = join('', @$converted_seq_ref);
+        $output .= outIMGT($obj->getHeader(), $converted_seq,
+                           $obj->getDomain(), $obj->getOrganism(),
+                           $numbering_ref);
     }
 }
 
