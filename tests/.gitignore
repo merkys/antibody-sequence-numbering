@@ -6,3 +6,7 @@ raw_data/mus_musculus/sampled_fasta/*
 diffs/*
 outputsAnarci/*
 raw_data/pdb_seqres.txt.gz
+test_cases/imgt_numbering/diffs/*
+test_cases/imgt_numbering/outputsAnarci/*
+test_cases/kabat_convertation/diffs/*
+test_cases/kabat_convertation/outputsAnarci/*

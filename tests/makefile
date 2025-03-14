@@ -1,3 +1,4 @@
+MAKEFLAGS += --no-print-directory
 ## Roor Dirs
 DATA_DIR = data
 ANARCI_OUTPUT_DIR = outputsAnarci
@@ -75,3 +76,11 @@ clean_data:
 ${ALL_SEQ_FILE}:
 	wget -O $@ ${SEQ_FROM_PDB_LINK}
 #---------------------------------------------------------------------------------------------------------------------------------
+.PHONY: test_all
+
+test_all:
+	@$(MAKE) -C test_cases/imgt_numbering test_all
+	@$(MAKE) -C test_cases/kabat_convertation test_all
+
+
+
