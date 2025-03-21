@@ -10,7 +10,7 @@ TEST_CASES_DIR = test_cases
 RAW_DATA_DIRS_NAMES = fasta sampled_fasta
 SPECIES = homo_sapiense mus_musculus
 CHAINS = heavy kappa lambda
-TEST_CASES = imgt_numbering kabat_convertation
+TEST_CASES = imgt_numbering kabat_convertation chothia_convertation
 ## Dirs in dirs generators
 CHAINS_DATA_DIRS = $(foreach chain, $(CHAINS), $(foreach sp, $(SPECIES), $(DATA_DIR)/$(sp)/$(chain)))
 CHAINS_ANARCI_OUTPUT_DIRS = $(foreach test_case,$(TEST_CASES), $(foreach chain, $(CHAINS), $(foreach sp, $(SPECIES), $(TEST_CASES_DIR)/$(test_case)/$(ANARCI_OUTPUT_DIR)/$(sp)/$(chain))))
@@ -81,6 +81,7 @@ ${ALL_SEQ_FILE}:
 test_all:
 	@$(MAKE) -C test_cases/imgt_numbering test_all
 	@$(MAKE) -C test_cases/kabat_convertation test_all
+	@$(MAKE) -C test_cases/chothia_convertation test_all
 
 
 

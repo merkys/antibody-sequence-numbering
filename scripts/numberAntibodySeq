@@ -18,7 +18,8 @@ sub usage
 }
 
 my %supportedSchemes = ('imgt' => 1,
-                        'kabat'=> 1);
+                        'kabat'=> 1,
+                        'chothia'=> 1);
 
 my ($numberingScheme, $seqFile, $outputFile);
 
