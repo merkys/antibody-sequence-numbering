@@ -2,89 +2,23 @@ package NumTools::IMGT;
 
 use strict;
 use warnings;
-use File::Temp qw/ tempfile /;
 use Exporter 'import';
 use POSIX qw(ceil);
 
 
-our @EXPORT_OK = qw(findBestDomain alignToDomain checkInsertion numberSeq fixAlignment);
+our @EXPORT_OK = qw(getSeqNumbering);
 our %EXPORT_TAGS = ( ALL => \@EXPORT_OK );
 
 
-sub writeFastaToTMP
+sub getSeqNumbering
 {
-	my ($header, $seq_ref) = @_;
-	my ($tmp_fh, $tmpFile) = tempfile();
-	print $tmp_fh ">" . $header . "\n";
-	print $tmp_fh join('', @$seq_ref), "\n";
-	close($tmp_fh);
-	return $tmpFile
+    my ($seq_obj) = @_;
+    $seq_obj->setInsertionCount(checkInsertion($seq_obj->getAlignedSeq()));
+    $seq_obj->setFixedSeq(fixAlignment($seq_obj->getAlignedSeq(), $seq_obj->getInsertionCount()));
+    $seq_obj->setImgtNumbering(numberSeq($seq_obj->getFixedSeq(), $seq_obj->getInsertionCount()));
+    
+    return $seq_obj->getFixedSeq(), $seq_obj -> getImgtNumbering()
 }
-
-
-sub findBestDomain
-{
-	my ($seq_id, $seq_array_ref) = @_;
-	my $seqFile = writeFastaToTMP($seq_id, $seq_array_ref);
-	my ($fh, $domTblout) = tempfile();
-	close($fh);
-	my $hmmScanResult = qx(hmmscan --domT 100 -T 100 --domtblout $domTblout --noali hmms/IG_combined.hmm $seqFile);
-	
-	open(my $tblout_fh, "<", $domTblout)
-		or die "Could not open hmmscan domain table out file: $domTblout";
-	
-	local $/ = "\n";
-	my %sequences;
-	my $bestScore = 0;
-	my $bestDomain = {};
-	while(my $line = <$tblout_fh>)
-	{
-		next if $line =~ /^#/;
-		my @field = split(/\s+/, $line);
-		$field[0] =~ /^(\S+)_(\S+)$/;
-		my $organism = $1;
-		my $domain = $2;
-		#print $organism . " $domain\n";
-		my $seqInfo = {
-					organism => $organism,
-					domain	=> $domain,
-					tLen 	=> $field[2],
-					qLen 	=> $field[5],
-					e_value	=> $field[6],	
-					score	=> $field[7],	
-					bias	=> $field[8],
-					acc	=> $field[-2],
-					seq	=> '',
-					fullName=> ''
-				};
-		
-
-		if($bestScore < $seqInfo -> {score})
-		{
-			$bestDomain = $seqInfo;
-			$bestScore = $seqInfo -> {score};
-		}
-	}
-	unlink $domTblout or warn "Could not unlink $domTblout: $!";
-	unlink $seqFile or warn "Could not unlink $seqFile: $!";
-	return $bestDomain;
-}
-
-sub alignToDomain
-{
-	my ($seq_id, $seq_array_ref, $domain, $organism) = @_;
-	
-	my $seqFile = writeFastaToTMP($seq_id, $seq_array_ref);
-	my $hmmAlignResults = qx(hmmalign --outformat afa --trim hmms/$organism/$domain.hmm $seqFile);
-	my @hmmAlignResults = split("\n", $hmmAlignResults);
-	my $sequence = join("", @hmmAlignResults[1 .. $#hmmAlignResults]);
-	my @sequence = split('', $sequence);
-	my $residueIndex = 0;
-	my $fixed_seq = join('', @sequence);
-	return $fixed_seq
-}
-
-
 
 sub checkInsertion
 {

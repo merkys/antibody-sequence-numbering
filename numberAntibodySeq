@@ -18,7 +18,7 @@ BEGIN {
 use File::Temp qw/ tempfile /;
 use IO::FastaParser qw(readFasta);
 use IO::Exporter qw(generateStandartOut);
-use Seq;
+use Structures::HMM_model;
 use NumTools::IMGT qw(:ALL);
 use NumTools::Converter qw(convertImgt);
 
@@ -55,7 +55,7 @@ if($seqFile)
 	open($fh, '<', $seqFile)
 		or die "Could not open file: $outputFile";
 }
-my @seq_objects;
+my @HMM_models;
 {
 	local $/ = "\n>";  
 	while(my $record = <$fh>)
@@ -63,9 +63,7 @@ my @seq_objects;
 		chomp $record;
 		$record =~ s/^>//;
 		my $seq_ref = readFasta($record);
-		my $domain_ref = findBestDomain($seq_ref -> {id}, $seq_ref->{seq});
-		my $new_seq_obj = Seq->new($seq_ref, $domain_ref);
-		push @seq_objects, $new_seq_obj;
+		push @HMM_models, Structures::HMM_model->new($seq_ref);
 	}
 
 	close($fh) if $seqFile;
@@ -74,30 +72,20 @@ my @seq_objects;
 
 my $output = '';
 my $convert_out ='';
-for my $obj (@seq_objects)
+for my $model (@HMM_models)
 {
-    #print$obj->getOrganism() . "\n";
-    $obj->setAlignedSeq(alignToDomain($obj->getId(), $obj->getSeq(), $obj->getDomain(), $obj->getOrganism()));
-    $obj->setInsertionCount(checkInsertion($obj->getAlignedSeq()));
-    $obj->setFixedSeq(fixAlignment($obj->getAlignedSeq(), $obj->getInsertionCount()));
-    $obj->setImgtNumbering(numberSeq($obj->getFixedSeq(), $obj->getInsertionCount()));
-    if($numberingScheme eq 'imgt')
-    {
-        $output .= generateStandartOut($obj->getHeader(), $obj->getFixedSeq(),
-                                       $obj->getDomain(), $obj->getOrganism(),
-                                       $obj->getImgtNumbering());
-    }
+    my $seq = $model->getSequence();
+    my ($numbered_seq, $numbering_ref) = getSeqNumbering($seq);
     if($numberingScheme ne 'imgt')
     {
-        my ($converted_seq_ref, $numbering_ref) = convertImgt($obj->getFixedSeq(),
-                                                              $obj->getDomain(),
-                                                              $numberingScheme);
-        
-        my $converted_seq = join('', @$converted_seq_ref);
-        $output .= generateStandartOut($obj->getHeader(), $converted_seq,
-                                       $obj->getDomain(), $obj->getOrganism(),
-                                       $numbering_ref);
+        $numbered_seq, $numbering_ref = convertImgt($numbered_seq,
+                                                    $seq->getDomain(),
+                                                    $numberingScheme);
+        $numbered_seq = join('', @$numbered_seq);
     }
+    $output .= generateStandartOut($seq->getHeader(), $numbered_seq,
+                                   $seq->getDomain(), $seq->getOrganism(),
+                                   $numbering_ref);
 }
 
 my $out_fh = *STDOUT;
