@@ -1,4 +1,4 @@
-package FastaParser;
+package IO::FastaParser;
 
 use strict;
 use warnings;

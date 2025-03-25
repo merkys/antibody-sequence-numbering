@@ -4,7 +4,6 @@ use strict;
 use warnings;
 
 use Exporter 'import';
-
 our @EXPORT_OK = qw(formNumbering countInsertions countInsertionsCdr3 convertRegion);
 our %EXPORT_TAGS = ( ALL => \@EXPORT_OK );
 

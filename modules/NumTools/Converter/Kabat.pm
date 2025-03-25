@@ -1,24 +1,22 @@
-package Converter::Chothia;
+package Converter::Kabat;
 
 use strict;
 use warnings;
 use Exporter 'import';
-
-use lib '.';
 use Converter::Utils qw(:ALL);
 
-our @EXPORT_OK = qw(convertToChothia);
+our @EXPORT_OK = qw(convertToKabat);
 our %EXPORT_TAGS = ( ALL => \@EXPORT_OK );
 
-sub convertToChothia
+sub convertToKabat
 {
     my ($seq, $domain) = @_;
-    return convertToChothiaHeavy($seq) if $domain =~ /IGH/;
-    return convrtToChothiaLight_Kappa($seq) if $domain =~ /IGK/;
-    return convrtToChothiaLight_Lambda($seq) if $domain =~ /IGL/;
+    return convertToKabatHeavy($seq) if $domain =~ /IGH/;
+    return convrtToKabatLight_Kappa($seq) if $domain =~ /IGK/;
+    return convrtToKabatLight_Lambda($seq) if $domain =~ /IGL/;
 }
 
-sub convrtToChothiaLight_Lambda
+sub convrtToKabatLight_Lambda
 {
     my ($seq) = @_;
     my @seq = split('', $seq);
@@ -31,7 +29,7 @@ sub convrtToChothiaLight_Lambda
     my @region_insertions_count         = (0, 3,  0,  0,  0,   0,     0); # Insertions from Kabat numbering scheme
     my @region_structural_gaps_count    = (0, 3,  0,  7,  3,   4,     1); # Gaps from Stockholm file 
     my @region_residues_till_struct_gap = (9, 1,  0,  0,  7,   0,     0);    # pos is stuct gap if all pos in columns are gaps
-    my @region_insertions_positions     = (undef, 30, undef, undef, undef, 95, undef); # Insertion pos from Kabat numbering scheme
+    my @region_insertions_positions     = (undef, 27, undef, undef, undef, 95, undef); # Insertion pos from Kabat numbering scheme
     my @regions = ('fr1', 'cdr1', 'fr2', 'cdr2', 'fr3', 'cdr3', 'fr4'); 
     my @conveted_seq;
     my @kabat_numbering;
@@ -69,7 +67,7 @@ sub convrtToChothiaLight_Lambda
     return \@conveted_seq, \@kabat_numbering
 }
 
-sub convrtToChothiaLight_Kappa
+sub convrtToKabatLight_Kappa
 {
     my ($seq) = @_;
     my @seq = split('', $seq);
@@ -82,7 +80,7 @@ sub convrtToChothiaLight_Kappa
     my @region_insertions_count         = (0, 5,  0,  0,  0,   0,     0); # Insertions from Kabat numbering scheme
     my @region_structural_gaps_count    = (0, 1,  0,  7,  3,   4,     1); # Gaps from Stockholm file 
     my @region_residues_till_struct_gap = (0, 0,  0,  0,  7,   0,     0);    # pos is stuct gap if all pos in columns are gaps
-    my @region_insertions_positions     = (undef, 30, undef, undef, undef, 95, undef); # Insertion pos from Kabat numbering scheme
+    my @region_insertions_positions     = (undef, 27, undef, undef, undef, 95, undef); # Insertion pos from Kabat numbering scheme
     my @regions = ('fr1', 'cdr1', 'fr2', 'cdr2', 'fr3', 'cdr3', 'fr4'); 
     my @conveted_seq;
     my @kabat_numbering;
@@ -121,8 +119,7 @@ sub convrtToChothiaLight_Kappa
 }
 
 
-
-sub convertToChothiaHeavy
+sub convertToKabatHeavy
 {
     my ($seq) = @_;
     my @seq = split('', $seq);
@@ -135,7 +132,7 @@ sub convertToChothiaHeavy
     my @region_insertions_count         = (0, 2,  0,  2,  3,   0,     0);
     my @region_structural_gaps_count    = (1, 2,  0,  1,  1,   1,     0);
     my @region_residues_till_struct_gap = (9, 4,  0,  2,  7,   0,     0);
-    my @region_insertions_positions     = (undef, 31, undef, 52, 82, 100, undef);
+    my @region_insertions_positions     = (undef, 35, undef, 52, 82, 100, undef);
     my @regions = ('fr1', 'cdr1', 'fr2', 'cdr2', 'fr3', 'cdr3', 'fr4'); 
     my @conveted_seq;
     my @kabat_numbering;

@@ -3,18 +3,29 @@ use strict;
 use warnings;
 use Cwd;
 use Getopt::Long;
+
 use FindBin;
-use lib "$FindBin::RealBin/../modules";
+use File::Spec;
+BEGIN {
+    my @dirs = grep { -d $_ } glob(File::Spec->catdir($FindBin::Bin, 'modules', '*'));
+    unshift @INC, "$FindBin::Bin/modules";
+    for my $dir (@dirs)
+    {
+        unshift @INC, $dir;
+    }
+}
+
 use File::Temp qw/ tempfile /;
-use FastaParser qw/ readFasta /;
+use IO::FastaParser qw(readFasta);
+use IO::Exporter qw(generateStandartOut);
 use Seq;
-use IMGT qw(:ALL);
-use Converter::Converter qw(convertImgt);
+use NumTools::IMGT qw(:ALL);
+use NumTools::Converter qw(convertImgt);
 
 
 sub usage
 {
-	die "usage\n";
+    die "usage\n";
 }
 
 my %supportedSchemes = ('imgt' => 1,
@@ -72,9 +83,9 @@ for my $obj (@seq_objects)
     $obj->setImgtNumbering(numberSeq($obj->getFixedSeq(), $obj->getInsertionCount()));
     if($numberingScheme eq 'imgt')
     {
-        $output .= outIMGT($obj->getHeader(), $obj->getFixedSeq(),
-                           $obj->getDomain(), $obj->getOrganism(),
-                           $obj->getImgtNumbering());
+        $output .= generateStandartOut($obj->getHeader(), $obj->getFixedSeq(),
+                                       $obj->getDomain(), $obj->getOrganism(),
+                                       $obj->getImgtNumbering());
     }
     if($numberingScheme ne 'imgt')
     {
@@ -83,9 +94,9 @@ for my $obj (@seq_objects)
                                                               $numberingScheme);
         
         my $converted_seq = join('', @$converted_seq_ref);
-        $output .= outIMGT($obj->getHeader(), $converted_seq,
-                           $obj->getDomain(), $obj->getOrganism(),
-                           $numbering_ref);
+        $output .= generateStandartOut($obj->getHeader(), $converted_seq,
+                                       $obj->getDomain(), $obj->getOrganism(),
+                                       $numbering_ref);
     }
 }
 

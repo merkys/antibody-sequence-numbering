@@ -1,9 +1,7 @@
-package Converter::Converter;
-
+package NumTools::Converter;
 use strict;
 use warnings;
 use Exporter 'import';
-use lib '.';
 use Converter::Kabat qw(convertToKabat);
 use Converter::Chothia qw(convertToChothia);
 

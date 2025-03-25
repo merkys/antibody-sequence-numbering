@@ -1,4 +1,4 @@
-package IMGT;
+package NumTools::IMGT;
 
 use strict;
 use warnings;
@@ -7,7 +7,7 @@ use Exporter 'import';
 use POSIX qw(ceil);
 
 
-our @EXPORT_OK = qw(findBestDomain alignToDomain checkInsertion numberSeq fixAlignment outIMGT);
+our @EXPORT_OK = qw(findBestDomain alignToDomain checkInsertion numberSeq fixAlignment);
 our %EXPORT_TAGS = ( ALL => \@EXPORT_OK );
 
 
@@ -223,23 +223,4 @@ sub numberSeq
 	
 	return \@numbering
 }
-
-sub outIMGT
-{
-	my ($header, $sequence, $domain, $organism, $numbering_ref) = @_;
-	$header =~ s/>//;
-	my $outputText ="# Domain: $domain\n# Organism: $organism\n# Sequence: $header\n";
-	my @seq = split('', $sequence);
-	if ($seq[-1] eq '-')
-	{
-		pop @seq;
-		pop @$numbering_ref;
-	}
-	for(my $i = 0; $i < @seq; $i++)
-	{
-		$outputText .=  uc($seq[$i]) . "\t" . $numbering_ref->[$i] . "\t\n";
-	}
-	return $outputText . "//\n";
-}
-
 1;
