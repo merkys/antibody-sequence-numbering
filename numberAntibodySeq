@@ -1,11 +1,14 @@
 #!/usr/bin/perl
+
 use strict;
 use warnings;
+
 use Cwd;
 use Getopt::Long;
-
 use FindBin;
 use File::Spec;
+
+
 BEGIN {
     my @dirs = grep { -d $_ } glob(File::Spec->catdir($FindBin::Bin, 'modules', '*'));
     unshift @INC, "$FindBin::Bin/modules";
@@ -14,12 +17,10 @@ BEGIN {
         unshift @INC, $dir;
     }
 }
-
-use File::Temp qw/ tempfile /;
 use IO::FastaParser qw(readFasta);
 use IO::Exporter qw(generateStandartOut);
 use Structures::HMM_model;
-use NumTools::IMGT qw(:ALL);
+use NumTools::IMGT qw(numberSeq);
 use NumTools::Converter qw(convertImgt);
 
 
@@ -28,57 +29,66 @@ sub usage
     die "usage\n";
 }
 
-my %supportedSchemes = ('imgt' => 1,
-                        'kabat'=> 1,
-                        'chothia'=> 1);
+my %supportedSchemes = ( 'imgt'   => 1,
+                         'kabat'  => 1,
+                         'chothia'=> 1 );
 
-my ($numberingScheme, $seqFile, $outputFile);
+my %supported_fix_mods = ( 'no_fit' => 1,
+                           'fit'      => 1 );
 
-GetOptions(
-	"scheme|s=s" =>  \$numberingScheme,
-	"output|o=s" => \$outputFile,
-	"input|i=s" => \$seqFile,
-) or usage();
+my ($numberingScheme, $seqFile, $outputFile, $error_fix_mode);
+
+GetOptions( "scheme|s=s"  => \$numberingScheme,
+            "output|o=s"  => \$outputFile,
+            "input|i=s"   => \$seqFile,
+            "errFix|ef=s" => \$error_fix_mode,) or usage();
 
 $numberingScheme ||= 'imgt';
+$error_fix_mode ||= 'fit';
 
 if(!$supportedSchemes{lc($numberingScheme)})
 {
-	warn "This scheme is not supported: $numberingScheme\n";
-	print "Supported schemes:\n";
-	die join("\n", keys %supportedSchemes), "\n";
+    warn "This scheme is not supported: $numberingScheme\n";
+    print "Supported schemes:\n";
+    die join("\n", keys %supportedSchemes), "\n";
+}
+
+if(!$supported_fix_mods{lc($error_fix_mode)})
+{
+    warn "This mode is not supported: $error_fix_mode\n";
+    print "Supported mods:\n";
+    die join("\n", keys %supported_fix_mods), "\n";
 }
 
 my $fh = *STDIN;
 if($seqFile)
 {
-	open($fh, '<', $seqFile)
-		or die "Could not open file: $outputFile";
+    open($fh, '<', $seqFile)
+        or die "Could not open file: $seqFile";
 }
 my @HMM_models;
 {
-	local $/ = "\n>";  
-	while(my $record = <$fh>)
-	{
-		chomp $record;
-		$record =~ s/^>//;
-		my $seq_ref = readFasta($record);
-		push @HMM_models, Structures::HMM_model->new($seq_ref);
-	}
+    local $/ = "\n>";  
+    while(my $record = <$fh>)
+    {
+        chomp $record;
+        $record =~ s/^>//;
+        my $seq_ref = readFasta($record);
+        push @HMM_models, Structures::HMM_model->new($seq_ref);
+    }
 
-	close($fh) if $seqFile;
+    close($fh) if $seqFile;
 }
 
 
 my $output = '';
-my $convert_out ='';
 for my $model (@HMM_models)
 {
     my $seq = $model->getSequence();
-    my ($numbered_seq, $numbering_ref) = getSeqNumbering($seq);
+    my ($numbered_seq, $numbering_ref) = numberSeq($seq, $error_fix_mode);
     if($numberingScheme ne 'imgt')
     {
-        $numbered_seq, $numbering_ref = convertImgt($numbered_seq,
+       ($numbered_seq, $numbering_ref) = convertImgt($numbered_seq,
                                                     $seq->getDomain(),
                                                     $numberingScheme);
         $numbered_seq = join('', @$numbered_seq);
@@ -96,4 +106,5 @@ if($outputFile)
 }
 print $out_fh $output;
 close($out_fh) if $outputFile;
+
 

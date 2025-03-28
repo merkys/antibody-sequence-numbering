@@ -6,19 +6,18 @@ use warnings;
 sub new
 {
     my ($class, $seq_ref, $domain_ref) = @_;
-    my $self = {seq 	 => $seq_ref-> {seq},
-                header 	 => $seq_ref-> {header},
-                id       => $seq_ref-> {id},
-                domain 	 => $domain_ref-> {domain},
-                organism => $domain_ref-> {organism},
-                score	 => $domain_ref-> {score},
-                bias	 => $domain_ref-> {bias},
-                FRs      => [],
-                CDRs	 => [],
-                aligned_seq	=> '',
-                fixed_seq	=> '',
-                insertion_count	=> '',
-                imgt_numbering	=> ''};
+    my $self = { seq 	  => $seq_ref-> {seq},
+                 header   => $seq_ref-> {header},
+                 id       => $seq_ref-> {id},
+                 domain   => $domain_ref-> {domain},
+                 organism => $domain_ref-> {organism},
+                 score	  => $domain_ref-> {score},
+                 bias	  => $domain_ref-> {bias},
+                 FRs      => [],
+                 CDRs	  => [],
+                 aligned_seq	=> undef,
+                 fixed_seq	=> '',
+                 insertion_count	=> ''};
     return bless $self, $class;
 }
 
