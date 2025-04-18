@@ -1,0 +1,57 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+my ($input_file, $chains_count, $out_dir);
+
+GetOptions( "out_dir|o=s" => \$out_dir,  
+            "input|i=s"   => \$input_file,
+            "num|n=s"     => \$chains_count);
+
+open my $fh, "<", $input_file
+    or die "Could not open file: $input_file";
+    
+<$fh>;
+my $chain_counter = 0;
+my %seen_chains;
+my $current_pdb_id='';
+my $current_light_id = '-';
+my $current_heavy_id = '-';
+while(my $line = <$fh>)
+{
+    last if $chain_counter == $chains_count;
+    my @fields = split /\t/, $line;
+    if (@fields >= 25)
+    {
+        my $pdb_id = $fields[0];
+        my $heavy_chain_id = $fields[1];
+        my $light_chain_id = $fields[2];
+        my $light_chain_type = $fields[24];
+        if($current_pdb_id ne $pdb_id)
+        {
+            if($current_pdb_id ne '')
+            {
+                open my $oh, '>', "$out_dir/$current_pdb_id.id"
+                    or warn "Could not open file $out_dir/$current_pdb_id.id";
+                print $oh join('_', $current_heavy_id, $current_light_id) . "\n";
+                close($oh);
+            }
+            $current_pdb_id = $pdb_id;
+            $chain_counter += 1;
+            $current_heavy_id = '-';
+            $current_light_id = '-';
+        }
+        if(not ($heavy_chain_id eq 'NA' or $heavy_chain_id eq 'unknown'))
+        {
+            $current_heavy_id = $heavy_chain_id;
+        }
+        
+        if(($light_chain_id ne 'NA' and $light_chain_id ne 'unknown'))
+        {
+            $current_light_id = $light_chain_id;
+        }
+    }
+}
+close $fh;

@@ -1,0 +1,21 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use File::Basename;
+
+my $numbering_file = $ARGV[0];
+
+open my $fh, '<', $numbering_file
+    or die "Could not open file: $numbering_file";
+
+my $pdb_id = basename($numbering_file, '.out');
+my $seq = '';
+while(my $line = <$fh>)
+{
+    $line =~ /^(\S)/;
+    $seq .= $1;
+}
+close $fh;
+print ">$pdb_id\n";
+print "$seq\n";

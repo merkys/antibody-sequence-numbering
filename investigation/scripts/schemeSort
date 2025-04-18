@@ -1,0 +1,343 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use Getopt::Long;
+use Set::Object qw( set );
+use IO::Uncompress::Gunzip qw(gunzip $GunzipError);
+use File::Basename;
+
+my ($id_file, $pdb_file, $out_dir);
+
+
+my %aa = ( 'ALA' => 'A', 'CYS' => 'C', 'ASP' => 'D', 'GLU' => 'E',
+           'PHE' => 'F', 'GLY' => 'G', 'HIS' => 'H', 'ILE' => 'I',
+           'LYS' => 'K', 'LEU' => 'L', 'MET' => 'M', 'ASN' => 'N',
+           'PRO' => 'P', 'GLN' => 'Q', 'ARG' => 'R', 'SER' => 'S',
+           'THR' => 'T', 'VAL' => 'V', 'TRP' => 'W', 'TYR' => 'Y');
+
+my %allowed_insertions = ( heavy => { map { $_ => 1 } qw(31A 35A 52A 82A 100A) },
+                           light => { map { $_ => 1 } qw(27A 30A 95A 106A) });
+
+my %pos = (
+    '27A'  => set( 'L_Kabat'),
+    '30A'  => set( 'L_Chothia'),
+    '95A'  => set( 'L_Kabat', 'L_Chothia' ),
+    '106A' => set( 'L_Kabat', 'L_Chothia' ),
+    
+   
+    '31A'  => set( 'H_Chothia'),
+    '35A'  => set( 'H_Kabat' ),
+    '52A'  => set( 'H_Kabat', 'H_Chothia'),
+    '82A'  => set( 'H_Kabat', 'H_Chothia'),
+    '100A' => set( 'H_Kabat', 'H_Chothia')
+);
+
+GetOptions( "id_file|id=s"  => \$id_file,
+            "input_file|i=s" => \$pdb_file,
+            "out_dir|o=s" => \$out_dir);
+            
+open my $id_h, '<', $id_file
+    or die "Could not open id file: $id_file!";
+
+my $ids_line = <$id_h>;
+chomp $ids_line;
+my ($heavy_id, $light_id) = split "_", $ids_line;
+close $id_h;
+
+my $gz = IO::Uncompress::Gunzip->new($pdb_file)
+    or do { warn "Could not open file $pdb_file: $GunzipError\n"; next; };
+    
+my %insertions_heavy;
+my %insertions_light;
+my $heavy_chain = '';
+my $light_chain = '';
+while(my $pdb_line = <$gz>)
+{
+    
+    next if $pdb_line !~ /^ATOM/;
+    my $chain = substr($pdb_line, 21, 1);
+    if ($chain eq $heavy_id || $chain eq $light_id)
+    {
+        my $resSeq = substr($pdb_line, 22, 4);
+        $resSeq =~ s/^\s+|\s+$//g;
+            
+        my $iCode  = substr($pdb_line, 26, 1);
+        $iCode =~ s/\s//g;
+        if ($chain eq $heavy_id)
+        { 
+            $heavy_chain .= $pdb_line;
+        }
+        else
+        {
+            $light_chain .= $pdb_line;
+        }
+        if ($iCode ne '' and $iCode eq 'A')
+        {
+            my $key = $resSeq . $iCode;
+            if ($chain eq $heavy_id)
+            {
+                $insertions_heavy{$key} = 1;
+               
+            }
+            else
+            {
+                $insertions_light{$key} = 1;
+            }
+        }
+    }
+}
+$gz->close();
+    
+my $is_heavy_no_ins = 0;
+my $is_heavy_unknown_inst = 0;
+my $is_heavy_kabat = 0;
+my $is_heavy_chothia = 0;
+    
+
+    
+my @heavy_ins = sort keys %insertions_heavy;
+if (!@heavy_ins)
+{
+    $is_heavy_no_ins = 1;
+}
+else
+{
+    my @unknown = grep { !exists $allowed_insertions{heavy}{$_} } @heavy_ins;
+    if (@unknown)
+    {
+        $is_heavy_unknown_inst = 1;
+    }
+    else
+    {
+        my $scheme_set;
+        foreach my $ins (@heavy_ins)
+        {
+            my $current_set = $pos{$ins};
+            if (!$scheme_set)
+            {
+                $scheme_set =  set($current_set->members())
+            }
+            else
+            {
+                $scheme_set *= $current_set;
+            }
+        }
+        if ($scheme_set && $scheme_set->size() == 1)
+        {
+            my ($scheme) = $scheme_set->members();
+            $is_heavy_kabat = 1 if $scheme =~ /Kabat/;
+            $is_heavy_chothia = 1 if $scheme =~ /Chothia/;
+        }
+        elsif ($scheme_set && $scheme_set->size() > 1)
+        {
+            $is_heavy_kabat = 1
+        }
+        else
+        {
+            $is_heavy_kabat = 1
+        }
+    }
+}
+    
+my $is_light_no_ins = 0;
+my $is_light_unknown_inst = 0;
+my $is_light_kabat = 0;
+my $is_light_chothia = 0;
+    
+my @light_ins = sort keys %insertions_light;
+if (!@light_ins)
+{
+    $is_light_no_ins = 1;
+}
+else
+{
+    my @unknown = grep { !exists $allowed_insertions{light}{$_} } @light_ins;
+    if (@unknown)
+    {
+        $is_light_unknown_inst = 1;
+    }
+    else
+    {
+        my $scheme_set;
+        foreach my $ins (@light_ins)
+        {
+            my $current_set = $pos{$ins};
+            if (!$scheme_set)
+            {
+                $scheme_set =  set($current_set->members())
+            }
+            else
+            {
+                $scheme_set *= $current_set;
+            }
+        }
+        if ($scheme_set && $scheme_set->size() == 1)
+        {
+            my ($scheme) = $scheme_set->members();
+            $is_light_kabat = 1 if $scheme =~ /Kabat/;
+            $is_light_chothia = 1 if $scheme =~ /Chothia/;
+        }
+        elsif ($scheme_set && $scheme_set->size() > 1)
+        {
+            $is_light_kabat = 1
+        }
+        else
+        {
+            $is_light_kabat = 1
+        }
+    }
+}
+
+my @heavy_lines = split /\n/, $heavy_chain;
+my $is_new_index = 1;
+my $prev_index = '';
+my $heavy_numbering = '';
+my $heavy_inertion_count = 0;
+foreach my $line (@heavy_lines)
+{
+    my $resName = substr($line, 17, 3);
+    $resName =~ s/^\s+|\s+$//g;          
+    my $one_letter = $aa{uc $resName} // '?';
+
+    my $resSeq = substr($line, 22, 4);
+    $resSeq =~ s/^\s+|\s+$//g;
+    my $iCode = substr($line, 26, 1);
+    $iCode =~ s/\s//g;
+    
+    my $residue_index = $iCode ne '' ? "$resSeq " . lc($iCode) : $resSeq;
+    $is_new_index = 1 if $residue_index ne $prev_index;
+    if($is_new_index)
+    {
+        $heavy_inertion_count += 1 if $iCode ne '' and $resSeq < 114;
+        $heavy_numbering .= "$one_letter\t$residue_index\n";
+        $is_new_index = 0;
+        $prev_index = $residue_index;
+    }
+}
+
+my @light_lines = split /\n/, $light_chain;
+$is_new_index = 1;
+$prev_index = '';
+my $light_numbering = '';
+my $light_inertion_count = 0;
+foreach my $line (@light_lines)
+{
+    my $resName = substr($line, 17, 3);
+    $resName =~ s/^\s+|\s+$//g;          
+    my $one_letter = $aa{uc $resName} // '?';
+
+    my $resSeq = substr($line, 22, 4);
+    $resSeq =~ s/^\s+|\s+$//g;
+    my $iCode = substr($line, 26, 1);
+    $iCode =~ s/\s//g;
+    
+    my $residue_index = $iCode ne '' ? "$resSeq " . lc($iCode) : $resSeq;
+    $is_new_index = 1 if $residue_index ne $prev_index;
+    if($is_new_index)
+    {
+        $light_inertion_count += 1 if $iCode ne '' and $resSeq < 108;
+        $light_numbering .= "$one_letter\t$residue_index\n";
+        $is_new_index = 0;
+        $prev_index = $residue_index;
+    }
+}
+
+my $pdb_id = basename($pdb_file, ".pdb.gz");
+my @heavy_numbering = split "\n", $heavy_numbering;
+my @light_numbering = split "\n", $light_numbering;
+my $heavy_end;
+my $light_end;
+
+if(scalar(@heavy_numbering) > 113 + $heavy_inertion_count)
+{
+    $heavy_end = 113 + $heavy_inertion_count;
+}
+else
+{
+    $heavy_end = scalar(@heavy_numbering)
+}
+
+if(scalar(@light_numbering) > 107 + $light_inertion_count)
+{
+    $light_end = 107 + $light_inertion_count;
+}
+else
+{
+    $light_end = scalar(@light_numbering)
+}
+
+#print scalar(@heavy_numbering) . " + " . $heavy_inertion_count . "\n";
+#print scalar(@light_numbering) . " + " . $light_inertion_count . "\n";
+if($is_light_chothia or $is_heavy_chothia)
+{
+    if($heavy_numbering ne '')
+    {
+        open my $h_oh, ">", "$out_dir/chothia/heavy/$pdb_id.out"
+            or die "Could not open file: $out_dir/chothia/heavy/$pdb_id.out";
+        for(my $i = 0; $i < $heavy_end; $i++)
+        {
+            print $h_oh $heavy_numbering[$i] . "\n";
+        }
+        close $h_oh;
+    }
+    if($light_numbering ne '')
+    {
+        open my $l_oh, ">", "$out_dir/chothia/light/$pdb_id.out"
+            or die "Could not open file: $out_dir/chothia/light/$pdb_id.out";
+        for(my $i = 0; $i < $light_end; $i++)
+        {
+            print $l_oh $light_numbering[$i] . "\n";
+        }
+        close $l_oh;
+    }
+}
+elsif($is_light_kabat or $is_heavy_kabat)
+{
+    if($heavy_numbering ne '')
+    {
+        open my $h_oh, ">", "$out_dir/kabat/heavy/$pdb_id.out"
+            or die "Could not open file: $out_dir/kabat/heavy/$pdb_id.out";
+        
+
+        for(my $i = 0; $i < $heavy_end; $i++)
+        {
+            print $h_oh $heavy_numbering[$i] . "\n";
+        }
+        
+        close $h_oh;
+    }
+    if($light_numbering ne '')
+    {
+        open my $l_oh, ">", "$out_dir/kabat/light/$pdb_id.out"
+            or die "Could not open file: $out_dir/kabat/light/$pdb_id.out";
+        for(my $i = 0; $i < $light_end; $i++)
+        {
+            print $l_oh $light_numbering[$i] . "\n";
+        }
+        close $l_oh;
+    }
+}
+else
+{
+    if($heavy_numbering ne '')
+    {
+        open my $h_oh, ">", "$out_dir/unknown/heavy/$pdb_id.out"
+            or die "Could not open file: $out_dir/unknown/heavy/$pdb_id.out";
+        for(my $i = 0; $i < $heavy_end; $i++)
+        {
+            print $h_oh $heavy_numbering[$i] . "\n";
+        }
+        close $h_oh;
+    }
+    if($light_numbering ne '')
+    {
+        open my $l_oh, ">", "$out_dir/unknown/light/$pdb_id.out"
+            or die "Could not open file: $out_dir/unknown/light/$pdb_id.out";
+        for(my $i = 0; $i < $light_end; $i++)
+        {
+            print $l_oh $light_numbering[$i] . "\n";
+        }
+        close $l_oh;
+    }
+}

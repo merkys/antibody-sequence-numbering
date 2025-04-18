@@ -132,18 +132,18 @@ sub fixCdr
     my $cdr_current_length = scalar(@no_gap_seq);
     
     return "-" x $cdr_max_length if $cdr_current_length == 0;
-	return join("", @no_gap_seq) if $cdr_max_length == $cdr_current_length;
+    return join("", @no_gap_seq) if $cdr_max_length == $cdr_current_length;
 	
-	my $left_part = ceil($cdr_current_length/2);
-	my $right_part = $cdr_current_length - $left_part;
-	my $gaps_part = $cdr_max_length - $right_part - $left_part;
-	my @fixed_cdr;
+    my $left_part = ceil($cdr_current_length/2);
+    my $right_part = $cdr_current_length - $left_part;
+    my $gaps_part = $cdr_max_length - $right_part - $left_part;
+    my @fixed_cdr;
 
     push @fixed_cdr, @no_gap_seq[ 0..$left_part - 1];
     push @fixed_cdr, ('-') x $gaps_part;
     push @fixed_cdr, @no_gap_seq[ $left_part .. ($left_part + $right_part - 1) ];
 
-	return join("", @fixed_cdr);
+    return join("", @fixed_cdr);
 }
 
 
@@ -159,7 +159,7 @@ sub formNumbering
         my $insertion_left = $insertion_count - $insertion_right;
         push @numbering, map { "111 " . lc(chr(65 + $_)) } (0 .. $insertion_left - 1);
         push @numbering, map { "112 " . lc(chr(64 + $insertion_right - $_)) } (0 .. $insertion_right - 1);
-	}
+    }
     push @numbering, (112..128);
 	
     return \@numbering

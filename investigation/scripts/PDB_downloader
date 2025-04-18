@@ -1,0 +1,12 @@
+#!/bin/bash
+
+BASE_PDB_URL="https://files.rcsb.org/download"
+ID_FILE=$1
+OUT_DIR=$2
+
+filename=$(basename "$ID_FILE")
+pdb_id="${filename%.id}"
+url="$BASE_PDB_URL/${pdb_id}.pdb.gz"
+out="$OUT_DIR/${pdb_id}.pdb.gz"
+echo "Trying to download $url to $out"
+curl -s -f $url -o $out || echo "Failed to download $url"
