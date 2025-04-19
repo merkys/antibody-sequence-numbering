@@ -32,7 +32,7 @@ NUMBERING_2_FASTA = ${SCRIPTS}/numbering2fasta
 
 #-------------------------------------------------------------------------------------------------------------------------
 ## Id Files Number
-SEQ_N = 600
+SEQ_N = 2000
 
 ## Annotation Files
 HOMO_ANNOTATION = ${RAW_DATA_DIR}/homo_sapiens/anotation_file.tsv
@@ -87,7 +87,7 @@ NUBERING_FILES = ${HOMO_NUMBERING_KABAT_LIGHT}, ${HOMO_NUMBERING_KABAT_HEAVY}, $
 prepare_numbering: prepare_numbering_mus prepare_numbering_homo
 	
 
-prepare_numbering_mus:
+prepare_numbering_homo:
 	@for pdb in $(HOMO_PDB); do \
 	  id_name=$$(basename $$pdb .pdb.gz).id; \
 	  id_file=$(HOMO_ID_DIR)/$$id_name; \
@@ -95,10 +95,10 @@ prepare_numbering_mus:
 	  ./${SHEME_SORT} --id_file $$id_file -i $$pdb --out_dir ${PDB_NUMBERING_DIR}/homo_sapiens; \
 	done
 
-prepare_numbering_homo:
+prepare_numbering_mus:
 	@for pdb in $(MUS_PDB); do \
 	  id_name=$$(basename $$pdb .pdb.gz).id; \
-	  id_file=$(HOMO_ID_DIR)/$$id_name; \
+	  id_file=$(MUS_ID_DIR)/$$id_name; \
 	  echo "Processing $$pdb and $$id_file"; \
 	  ./${SHEME_SORT} --id_file $$id_file -i $$pdb --out_dir ${PDB_NUMBERING_DIR}/mus_musculus; \
 	done
@@ -215,4 +215,10 @@ ${ANARCI_HOMO_DIFF_UNKNOWN_DIR}/heavy/%.diff: ${HOMO_NUMBERING_UNKNOWN_DIR}/heav
 clean_ANARCI_diffs:
 	rm -rf ${HOMO_DIFF_FILES}
 
+
+
+.PHONY: print_ids
+
+print_ids:
+	@echo ${HOMO_PDB}
 
