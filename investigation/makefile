@@ -88,7 +88,7 @@ prepare_numbering: prepare_numbering_mus prepare_numbering_homo
 	
 
 prepare_numbering_homo:
-	@for pdb in $(HOMO_PDB); do \
+	@ls -1 $(HOMO_PDB) | while read pdb; do \
 	  id_name=$$(basename $$pdb .pdb.gz).id; \
 	  id_file=$(HOMO_ID_DIR)/$$id_name; \
 	  echo "Processing $$pdb and $$id_file"; \
@@ -96,7 +96,7 @@ prepare_numbering_homo:
 	done
 
 prepare_numbering_mus:
-	@for pdb in $(MUS_PDB); do \
+	@ls -1 $(MUS_PDB) | while read pdb; do \
 	  id_name=$$(basename $$pdb .pdb.gz).id; \
 	  id_file=$(MUS_ID_DIR)/$$id_name; \
 	  echo "Processing $$pdb and $$id_file"; \
