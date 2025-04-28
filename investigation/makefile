@@ -88,19 +88,19 @@ prepare_numbering: prepare_numbering_mus prepare_numbering_homo
 	
 
 prepare_numbering_homo:
-	@ls -1 $(HOMO_PDB) | while read pdb; do \
+	@ls -1 $(HOMO_PDB_DIR) | while read pdb; do \
 	  id_name=$$(basename $$pdb .pdb.gz).id; \
 	  id_file=$(HOMO_ID_DIR)/$$id_name; \
 	  echo "Processing $$pdb and $$id_file"; \
-	  ./${SHEME_SORT} --id_file $$id_file -i $$pdb --out_dir ${PDB_NUMBERING_DIR}/homo_sapiens; \
+	  ./${SHEME_SORT} --id_file $$id_file -i $(HOMO_PDB_DIR)/$$pdb --out_dir ${PDB_NUMBERING_DIR}/homo_sapiens; \
 	done
 
 prepare_numbering_mus:
-	@ls -1 $(MUS_PDB) | while read pdb; do \
+	@ls -1 $(MUS_PDB_DIR) | while read pdb; do \
 	  id_name=$$(basename $$pdb .pdb.gz).id; \
 	  id_file=$(MUS_ID_DIR)/$$id_name; \
 	  echo "Processing $$pdb and $$id_file"; \
-	  ./${SHEME_SORT} --id_file $$id_file -i $$pdb --out_dir ${PDB_NUMBERING_DIR}/mus_musculus; \
+	  ./${SHEME_SORT} --id_file $$id_file -i $(MUS_PDB_DIR)/$$pdb --out_dir ${PDB_NUMBERING_DIR}/mus_musculus; \
 	done
 
 clean_numbering:
