@@ -8,3 +8,11 @@ scripts_out/hmms_prepare/mus_muluscus/combined/*
 scripts_out/hmms_prepare/mus_muluscus/joinings/prot/*
 scripts_out/hmms_prepare/mus_muluscus/stockholm/*
 scripts_out/hmms_prepare/mus_muluscus/variable/prot/*
+investigation/anarci_diff/*
+investigation/data/*
+investigation/diffs/*
+investigation/pdb_numbering/*
+investigation/raw_data/homo_sapiens/pdb/*
+investigation/raw_data/homo_sapiens/id/*
+investigation/raw_data/mus_musculus/pdb/*
+investigation/raw_data/mus_musculus/id/*
