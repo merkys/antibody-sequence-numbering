@@ -11,7 +11,7 @@ sub generateStandartOut
 	my ($header, $sequence, $domain, $organism, $numbering_ref) = @_;
 	$header =~ s/>//;
 	my $outputText ="# Domain: $domain\n# Organism: $organism\n# Sequence: $header\n";
-	my @seq = split('', $sequence);
+	my @seq = @{ $sequence };
 	if ($seq[-1] eq '-')
 	{
 		pop @seq;

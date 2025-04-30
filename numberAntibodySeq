@@ -91,7 +91,6 @@ for my $model (@HMM_models)
        ($numbered_seq, $numbering_ref) = convertImgt($numbered_seq,
                                                     $seq->getDomain(),
                                                     $numberingScheme);
-        $numbered_seq = join('', @$numbered_seq);
     }
     $output .= generateStandartOut($seq->getHeader(), $numbered_seq,
                                    $seq->getDomain(), $seq->getOrganism(),
