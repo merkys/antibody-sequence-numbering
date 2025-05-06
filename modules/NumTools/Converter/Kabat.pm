@@ -8,166 +8,94 @@ use Converter::Utils qw(:ALL);
 our @EXPORT_OK = qw(convertToKabat);
 our %EXPORT_TAGS = ( ALL => \@EXPORT_OK );
 
+#res_till_kabat_insetions source: https://www.imgt.org/IMGTScientificChart/Numbering/CDR3-IMGTgaps.html
+
+my %KabatTypes = (                  #FR1   CDR1  FR2    CDR2   FR3    CDR3   FR4      Information                   Source of information
+  IGL => {
+    region_starts                => [ 0,     26, 40,    55,    65,    104,   -11   ], # Region Start Indices,       IMGT
+    region_ends                  => [ 25,    39, 54,    64,    103,   'END', -1    ], # Region END   Indices,       IMGT
+    numbering_start              => [ 1,     27, 35,    50,    53,    89,    98    ], # Region Start Indices,       KABAT
+    numbering_end                => [ 26,    34, 49,    52,    88,    97,    107   ], # Region END   Indices,       KABAT
+    regions_max_length           => [ 26,    14, 15,    10,    39,    undef, 11    ], # Region Length,              IMGT
+    region_insertions_count      => [ 0,     3,  0,     0,     0,     0,     0     ], # Region Insertions Count,    KABAT
+    region_structural_gaps_count => [ 0,     3,  0,     7,     3,     4,     1     ], # Region Structural Gaps,     Stockholm file 
+    residues_till_struct_gap     => [ 9,     1,  0,     0,     7,     0,     0     ], # Res untill Structural Gaps, Stockholm file 
+    insertion_positions          => [ undef, 27, undef, undef, undef, 95,    undef ], # Region Insertions positions,KABAT
+    res_till_kabat_insetions     => 7,
+  },
+  IGK => {                           #FR1   CDR1  FR2    CDR2   FR3    CDR3   FR4
+    region_starts                => [ 0,     26,  40,    55,    65,    104,   -11   ],
+    region_ends                  => [ 25,    39,  54,    64,    103,   'END', -1    ],
+    numbering_start              => [ 1,     27,  35,    50,    53,    89,    98    ],
+    numbering_end                => [ 26,    34,  49,    52,    88,    97,    107   ],
+    regions_max_length           => [ 26,    14,  15,    10,    39,    undef, 11    ],
+    region_insertions_count      => [ 0,     5,   0,     0,     0,     0,     0     ],
+    region_structural_gaps_count => [ 0,     1,   0,     7,     3,     4,     1     ],
+    residues_till_struct_gap     => [ 0,     0,   0,     0,     7,     0,     0     ],
+    insertion_positions          => [ undef, 27,  undef, undef, undef, 95,    undef ],
+    res_till_kabat_insetions     => 7,
+  },
+  IGH => {                           #FR1   CDR1  FR2    CDR2   FR3    CDR3   FR4
+    region_starts                => [ 0,     26,  40,    55,     65,   104,    -11   ],
+    region_ends                  => [ 25,    39,  54,    64,     103,  'END',  -1    ],
+    numbering_start              => [ 1,     26,  36,    51,     58,    93,    103   ],
+    numbering_end                => [ 25,    35,  50,    57,     92,    102,   113   ],
+    regions_max_length           => [ 26,    14,  15,    10,     39,    undef, 11    ],
+    region_insertions_count      => [ 0,     2,   0,     2,      3,     0,     0     ],
+    region_structural_gaps_count => [ 1,     2,   0,     1,      1,     1,     0     ],
+    residues_till_struct_gap     => [ 9,     4,   0,     2,      7,     0,     0     ],
+    insertion_positions          => [ undef, 35,  undef, 52,     82,    100,   undef ],
+    res_till_kabat_insetions     => 8,
+  }
+);
+
+my @region_names = qw(fr1 cdr1 fr2 cdr2 fr3 cdr3 fr4);
+
 sub convertToKabat
 {
-    my ($seq, $domain) = @_;
-    return convertToKabatHeavy($seq) if $domain =~ /IGH/;
-    return convrtToKabatLight_Kappa($seq) if $domain =~ /IGK/;
-    return convrtToKabatLight_Lambda($seq) if $domain =~ /IGL/;
-}
+    my ($seq_ref, $ig_type_key) = @_;
+    my $type_info = $KabatTypes{$ig_type_key}
+        or die "Unknown type '$ig_type_key'\n";
+    my @seq = @$seq_ref;
+    my $end = @seq - 12;
+    my @region_ends = map { $_ eq 'END' ? $end : $_ } @{ $type_info->{region_ends} };
 
-sub convrtToKabatLight_Lambda
-{
-    my ($seq) = @_;
-    my @seq = split('', $seq);
-    my $end = scalar(@seq) - 12;         # F1 C1  F2  C2  F3   C3   F4
-    my @region_starts                   = (0, 26, 40, 55, 65,  104, -11); # Indexes from IMGT numbering scheme
-    my @region_ends                     = (25,39, 54, 64, 103, $end, -1); # Indexes from IMGT numbering scheme
-    my @region_numbering_start          = (1, 27, 35, 50, 53,  89,   98); # Indexes from Kabat numbering scheme 
-    my @region_numbering_end            = (26,34, 49, 52, 88,  97,  107); # Indexes from Kabat numbering scheme
-    my @regions_max_length              = (26,14, 15, 10, 39,  undef,11); # Length from IMGT numbering scheme
-    my @region_insertions_count         = (0, 3,  0,  0,  0,   0,     0); # Insertions from Kabat numbering scheme
-    my @region_structural_gaps_count    = (0, 3,  0,  7,  3,   4,     1); # Gaps from Stockholm file 
-    my @region_residues_till_struct_gap = (9, 1,  0,  0,  7,   0,     0);    # pos is stuct gap if all pos in columns are gaps
-    my @region_insertions_positions     = (undef, 27, undef, undef, undef, 95, undef); # Insertion pos from Kabat numbering scheme
-    my @regions = ('fr1', 'cdr1', 'fr2', 'cdr2', 'fr3', 'cdr3', 'fr4'); 
-    my @conveted_seq;
-    my @kabat_numbering;
-    for my $i (0..scalar(@regions) - 1)
+    my @converted;
+    my @numbering;
+
+    for my $i (0 .. $#region_names)
     {
-        my $region_current_insertions_count =  0;
-    	my @region = @seq[$region_starts[$i]..$region_ends[$i]];
-    	my $good_indicies = convertRegion(\@region, $region_structural_gaps_count[$i],
-                                          $region_insertions_count[$i],
-                                          $region_residues_till_struct_gap[$i]);
-                                          
-        @region = @region[@{$good_indicies}]; #Deleting structural gaps
-        my $region_actual_length = scalar(@region);
-    	
-    	
-    	if($regions[$i] =~ /cdr1|cdr2/ or $regions[$i] =~ /fr3/)
-    	{
-    	    $region_current_insertions_count = countInsertions($regions_max_length[$i],
-                                                        $region_actual_length,
-                                                        $region_structural_gaps_count[$i],
-                                                        $region_insertions_count[$i]);
-        }
-        
-        if($regions[$i] =~ /cdr3/)
-        {
-            $region_current_insertions_count = countInsertionsCdr3(\@region, 6);
-        }                                          
-        push @kabat_numbering, formNumbering($region_numbering_start[$i],
-                                             $region_numbering_end[$i],
-                                             $region_current_insertions_count, $region_insertions_positions[$i]);
-                               
-       push @conveted_seq, @region;
-    }
-    
-    return \@conveted_seq, \@kabat_numbering
-}
+        my @region = @seq[ $type_info->{region_starts}[$i] .. $region_ends[$i] ];
 
-sub convrtToKabatLight_Kappa
-{
-    my ($seq) = @_;
-    my @seq = split('', $seq);
-    my $end = scalar(@seq) - 12;         # F1 C1  F2  C2  F3   C3   F4
-    my @region_starts                   = (0, 26, 40, 55, 65,  104, -11); # Indexes from IMGT numbering scheme
-    my @region_ends                     = (25,39, 54, 64, 103, $end, -1); # Indexes from IMGT numbering scheme
-    my @region_numbering_start          = (1, 27, 35, 50, 53,  89,   98); # Indexes from Kabat numbering scheme 
-    my @region_numbering_end            = (26,34, 49, 52, 88,  97,  107); # Indexes from Kabat numbering scheme
-    my @regions_max_length              = (26,14, 15, 10, 39,  undef,11); # Length from IMGT numbering scheme
-    my @region_insertions_count         = (0, 5,  0,  0,  0,   0,     0); # Insertions from Kabat numbering scheme
-    my @region_structural_gaps_count    = (0, 1,  0,  7,  3,   4,     1); # Gaps from Stockholm file 
-    my @region_residues_till_struct_gap = (0, 0,  0,  0,  7,   0,     0);    # pos is stuct gap if all pos in columns are gaps
-    my @region_insertions_positions     = (undef, 27, undef, undef, undef, 95, undef); # Insertion pos from Kabat numbering scheme
-    my @regions = ('fr1', 'cdr1', 'fr2', 'cdr2', 'fr3', 'cdr3', 'fr4'); 
-    my @conveted_seq;
-    my @kabat_numbering;
-    for my $i (0..scalar(@regions) - 1)
-    {
-        my $region_current_insertions_count =  0;
-    	my @region = @seq[$region_starts[$i]..$region_ends[$i]];
-    	my $good_indicies = convertRegion(\@region, $region_structural_gaps_count[$i],
-                                          $region_insertions_count[$i],
-                                          $region_residues_till_struct_gap[$i]);
-                                          
-        @region = @region[@{$good_indicies}]; #Deleting structural gaps
-        my $region_actual_length = scalar(@region);
-    	
-    	
-    	if($regions[$i] =~ /cdr1|cdr2/ or $regions[$i] =~ /fr3/)
-    	{
-    	    $region_current_insertions_count = countInsertions($regions_max_length[$i],
-                                                        $region_actual_length,
-                                                        $region_structural_gaps_count[$i],
-                                                        $region_insertions_count[$i]);
-        }
-        
-        if($regions[$i] =~ /cdr3/)
-        {
-            $region_current_insertions_count = countInsertionsCdr3(\@region, 6);
-        }                                          
-        push @kabat_numbering, formNumbering($region_numbering_start[$i],
-                                             $region_numbering_end[$i],
-                                             $region_current_insertions_count, $region_insertions_positions[$i]);
-                               
-       push @conveted_seq, @region;
-    }
-    
-    return \@conveted_seq, \@kabat_numbering
-}
+        my $good_idx_ref = convertRegion(\@region,
+                                          $type_info->{region_structural_gaps_count}[$i],
+                                          $type_info->{region_insertions_count}[$i],
+                                          $type_info->{residues_till_struct_gap}[$i]);
+        @region = @region[@$good_idx_ref];
 
-
-sub convertToKabatHeavy
-{
-    my ($seq) = @_;
-    my @seq = split('', $seq);
-    my $end = scalar(@seq) - 12;         # F1 C1  F2  C2  F3   C3   F4
-    my @region_starts                   = (0, 26, 40, 55, 65,  104, -11);
-    my @region_ends                     = (25,39, 54, 64, 103, $end, -1);
-    my @region_numbering_start          = (1, 26, 36, 51, 58,  93,  103);
-    my @region_numbering_end            = (25,35, 50, 57, 92,  102, 113);
-    my @regions_max_length              = (26,14, 15, 10, 39,  undef,11);
-    my @region_insertions_count         = (0, 2,  0,  2,  3,   0,     0);
-    my @region_structural_gaps_count    = (1, 2,  0,  1,  1,   1,     0);
-    my @region_residues_till_struct_gap = (9, 4,  0,  2,  7,   0,     0);
-    my @region_insertions_positions     = (undef, 35, undef, 52, 82, 100, undef);
-    my @regions = ('fr1', 'cdr1', 'fr2', 'cdr2', 'fr3', 'cdr3', 'fr4'); 
-    my @conveted_seq;
-    my @kabat_numbering;
-    for my $i (0..scalar(@regions) - 1)
-    {
-        my $region_current_insertions_count =  0;
-    	my @region = @seq[$region_starts[$i]..$region_ends[$i]];
-    	my $good_indicies = convertRegion(\@region, $region_structural_gaps_count[$i],
-                                          $region_insertions_count[$i],
-                                          $region_residues_till_struct_gap[$i]);
-                                          
-        @region = @region[@{$good_indicies}]; #Deleting structural gaps
-        my $region_actual_length = scalar(@region);
-    	
-    	
-    	if($regions[$i] =~ /cdr1|cdr2/ or $regions[$i] =~ /fr3/)
-    	{
-    	    $region_current_insertions_count = countInsertions($regions_max_length[$i],
-                                                        $region_actual_length,
-                                                        $region_structural_gaps_count[$i],
-                                                        $region_insertions_count[$i]);
-        }
-        
-        if($regions[$i] =~ /cdr3/)
+        my $insertions = 0;
+        if ($region_names[$i] =~ /cdr1|cdr2|fr3/)
         {
-            $region_current_insertions_count = countInsertionsCdr3(\@region, 7);
-        }                                          
-        push @kabat_numbering, formNumbering($region_numbering_start[$i],
-                                             $region_numbering_end[$i],
-                                             $region_current_insertions_count, $region_insertions_positions[$i]);
-                               
-       push @conveted_seq, @region;
+            $insertions = countInsertions($type_info->{regions_max_length}[$i],
+                                          scalar(@region),
+                                          $type_info->{region_structural_gaps_count}[$i],
+                                          $type_info->{region_insertions_count}[$i]);
+        }
+        elsif ($region_names[$i] eq 'cdr3')
+        {
+            $insertions = countInsertionsCdr3(\@region, 
+                                              $type_info->{res_till_kabat_insetions});
+        }
+
+        push @numbering, formNumbering($type_info->{numbering_start}[$i],
+                                       $type_info->{numbering_end}[$i],
+                                       $insertions,
+                                       $type_info->{insertion_positions}[$i]);
+
+        push @converted, @region;
     }
-    
-    return \@conveted_seq, \@kabat_numbering
+
+    return \@converted, \@numbering;
 }
 
 1;

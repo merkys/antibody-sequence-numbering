@@ -29,7 +29,8 @@ sub fixCdrS
     splice @$clone_ref,
         FR1_END, CDR1_END - FR1_END,
         fixCdr([ @$clone_ref[FR1_END..CDR1_END-1] ], CDR1_MAX_LEN);
-
+    
+    
     splice @$clone_ref,
         FR2_END, CDR2_END - FR2_END,
         fixCdr([ @$clone_ref[FR2_END..CDR2_END-1] ], CDR2_MAX_LEN);
@@ -37,7 +38,7 @@ sub fixCdrS
     splice @$clone_ref,
         FR3_END, CDR3_END - FR3_END,
         fixCdr([ @$clone_ref[FR3_END..CDR3_END-1] ], CDR3_MAX_LEN);
-
+    
     return $clone_ref;
 }
      

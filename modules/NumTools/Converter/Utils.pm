@@ -7,6 +7,8 @@ use Exporter 'import';
 our @EXPORT_OK = qw(formNumbering countInsertions countInsertionsCdr3 convertRegion);
 our %EXPORT_TAGS = ( ALL => \@EXPORT_OK );
 
+use constant {INSERTIONLESS_END => 2};  #INSERTIONLESS_END source: https://www.imgt.org/IMGTScientificChart/Numbering/CDR3-IMGTgaps.html
+
 sub formNumbering
 {
     my ($numbering_start, $numbering_end,
@@ -45,7 +47,7 @@ sub countInsertions
 sub countInsertionsCdr3
 {
     my ($cdr_array_ref, $residues_untill_insertion_region) = @_;
-    my $insertions = scalar(@$cdr_array_ref) - $residues_untill_insertion_region - 3;
+    my $insertions = scalar(@$cdr_array_ref) - $residues_untill_insertion_region - INSERTIONLESS_END;
     return $insertions
 }
 
