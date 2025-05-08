@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Exporter 'import';
-our @EXPORT_OK = qw(formNumbering countInsertions countInsertionsCdr3 convertRegion);
+our @EXPORT_OK = qw(formNumbering countInsertions countInsertionsCdr3 convertRegion filterGaps);
 our %EXPORT_TAGS = ( ALL => \@EXPORT_OK );
 
 use constant {INSERTIONLESS_END => 2};  #INSERTIONLESS_END source: https://www.imgt.org/IMGTScientificChart/Numbering/CDR3-IMGTgaps.html
@@ -77,5 +77,23 @@ sub convertRegion
     return \@good_indices
 }
 
+sub filterGaps
+{
+    my ($numbered_seq_ref, $numbering_ref) = @_;
+    my @seq = @{$numbered_seq_ref};
+    my @num = @{$numbering_ref};
+    
+    my (@filtered_seq, @filtered_num);
+    for my $i (0 .. $#seq)
+    {
+        if ($seq[$i] ne '-')
+        {
+            push @filtered_seq, $seq[$i];
+            push @filtered_num, $num[$i];
+        }
+    }
+
+    return (\@filtered_seq, \@filtered_num);
+}
 
 1;

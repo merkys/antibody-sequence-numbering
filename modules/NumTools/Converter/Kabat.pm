@@ -58,7 +58,7 @@ my @region_names = qw(fr1 cdr1 fr2 cdr2 fr3 cdr3 fr4);
 
 sub convertToKabat
 {
-    my ($seq_ref, $ig_type_key) = @_;
+    my ($seq_ref, $ig_type_key, $if_filter_gaps) = @_;
     my $type_info = $KabatTypes{$ig_type_key}
         or die "Unknown type '$ig_type_key'\n";
     my @seq = @$seq_ref;
@@ -71,12 +71,6 @@ sub convertToKabat
     for my $i (0 .. $#region_names)
     {
         my @region = @seq[ $type_info->{region_starts}[$i] .. $region_ends[$i] ];
-        #print "$region_names[$i]\n";
-        for my $char (@region)
-        {
-            #print $char;
-        }
-        #print "\n";
         
         my $good_idx_ref = convertRegion(\@region,
                                           $type_info->{esenntial_residues_count}[$i],
@@ -84,18 +78,12 @@ sub convertToKabat
                                           
         $ignore_start_gaps = 0;
         @region = @region[@$good_idx_ref];
-       
-        for my $char (@region)
-        {
-            #print $char;
-        }
-        #print "\n";
+      
         my $insertions = 0;
         if ($region_names[$i] =~ /cdr1|cdr2|fr3/)
         {
             $insertions = countInsertions($type_info->{esenntial_residues_count}[$i],
                                           scalar(@region));
-            #print "insertions: $insertions\n";
         }
         elsif ($region_names[$i] eq 'cdr3')
         {
@@ -109,9 +97,13 @@ sub convertToKabat
                                        $type_info->{insertion_positions}[$i]);
 
         push @converted, @region;
-        #print "\n";
     }
-
+    if($if_filter_gaps != 0)
+    {
+        my ($f_converted, $f_numbering) =  filterGaps(\@converted, \@numbering);
+        @converted = @$f_converted;
+        @numbering = @$f_numbering;
+    }
     return \@converted, \@numbering;
 }
 

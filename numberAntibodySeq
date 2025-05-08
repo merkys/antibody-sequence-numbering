@@ -36,16 +36,17 @@ my %supportedSchemes = ( 'imgt'   => 1,
 my %supported_fix_mods = ( 'no_fit' => 1,
                            'fit'      => 1 );
 
-my ($numberingScheme, $seqFile, $outputFile, $error_fix_mode);
+my ($numberingScheme, $seqFile, $outputFile, $error_fix_mode, $is_filter_gaps);
 
 GetOptions( "scheme|s=s"  => \$numberingScheme,
             "output|o=s"  => \$outputFile,
             "input|i=s"   => \$seqFile,
-            "errFix|ef=s" => \$error_fix_mode,) or usage();
+            "errFix|ef=s" => \$error_fix_mode,
+            "filterGaps|fG=s" => \$is_filter_gaps) or usage();
 
 $numberingScheme ||= 'imgt';
 $error_fix_mode ||= 'fit';
-
+$is_filter_gaps ||= 0;;
 if(!$supportedSchemes{lc($numberingScheme)})
 {
     warn "This scheme is not supported: $numberingScheme\n";
@@ -90,7 +91,8 @@ for my $model (@HMM_models)
     {
        ($numbered_seq, $numbering_ref) = convertImgt($numbered_seq,
                                                     $seq->getDomain(),
-                                                    $numberingScheme);
+                                                    $numberingScheme,
+                                                    $is_filter_gaps);
     }
     $output .= generateStandartOut($seq->getHeader(), $numbered_seq,
                                    $seq->getDomain(), $seq->getOrganism(),

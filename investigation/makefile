@@ -156,19 +156,19 @@ test_homo: ${HOMO_DIFF_KABAT_LIGHT} ${HOMO_DIFF_KABAT_HEAVY} ${HOMO_DIFF_UNKNOWN
 	@echo "Empty diff files: $(shell find diffs/homo_sapiens -type f -name "*.diff" -empty | wc -l)"
 
 ${HOMO_DIFF_KABAT_DIR}/light/%.diff: ${HOMO_NUMBERING_KABAT_DIR}/light/%.out ${HOMO_FASTA_KABAT_DIR}/light/%.fasta
-	-./numberAntibodySeq -i $(word 2,$^) --scheme 'kabat' | tail -n +4 | head -n -1 | diff -w -y --suppress-common-lines - $< > $@
+	-./numberAntibodySeq -i $(word 2,$^) --scheme 'kabat' --filterGaps 1 | tail -n +4 | head -n -1 | diff -w -y --suppress-common-lines - $< > $@
 
 
 ${HOMO_DIFF_KABAT_DIR}/heavy/%.diff: ${HOMO_NUMBERING_KABAT_DIR}/heavy/%.out ${HOMO_FASTA_KABAT_DIR}/heavy/%.fasta
-	-./numberAntibodySeq -i $(word 2,$^) --scheme 'kabat' | tail -n +4 | head -n -1 | diff -w -y --suppress-common-lines - $< > $@
+	-./numberAntibodySeq -i $(word 2,$^) --scheme 'kabat' --filterGaps 1 | tail -n +4 | head -n -1 | diff -w -y --suppress-common-lines - $< > $@
 
 
 ${HOMO_DIFF_UNKNOWN_DIR}/light/%.diff: ${HOMO_NUMBERING_UNKNOWN_DIR}/light/%.out ${HOMO_FASTA_UNKNOWN_DIR}/light/%.fasta
-	-./numberAntibodySeq -i $(word 2,$^) --scheme 'kabat' | tail -n +4 | head -n -1 | diff -w -y --suppress-common-lines - $< > $@
+	-./numberAntibodySeq -i $(word 2,$^) --scheme 'kabat' --filterGaps 1 | tail -n +4 | head -n -1 | diff -w -y --suppress-common-lines - $< > $@
 
 
 ${HOMO_DIFF_UNKNOWN_DIR}/heavy/%.diff: ${HOMO_NUMBERING_UNKNOWN_DIR}/heavy/%.out ${HOMO_FASTA_UNKNOWN_DIR}/heavy/%.fasta
-	-./numberAntibodySeq -i $(word 2,$^) --scheme 'kabat' | tail -n +4 | head -n -1 | diff -w -y --suppress-common-lines - $< > $@
+	-./numberAntibodySeq -i $(word 2,$^) --scheme 'kabat' --filterGaps 1 | tail -n +4 | head -n -1 | diff -w -y --suppress-common-lines - $< > $@
 
 
 clean_diffs:

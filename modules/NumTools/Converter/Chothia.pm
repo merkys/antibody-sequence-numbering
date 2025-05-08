@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Exporter 'import';
 
-use Converter::Utils qw(convertRegion countInsertions countInsertionsCdr3 formNumbering);
+use Converter::Utils qw(convertRegion countInsertions countInsertionsCdr3 formNumbering filterGaps);
 
 our @EXPORT_OK   = qw(convertToChothia);
 our %EXPORT_TAGS = ( ALL => \@EXPORT_OK );
@@ -57,7 +57,7 @@ my @region_names = qw(fr1 cdr1 fr2 cdr2 fr3 cdr3 fr4);
 
 sub convertToChothia
 {
-    my ($seq_ref, $ig_type_key) = @_;
+    my ($seq_ref, $ig_type_key, $if_filter_gaps) = @_;
     my $type_info = $CothiaTypes{$ig_type_key}
         or die "Unknown type '$ig_type_key'\n";
         
@@ -66,8 +66,8 @@ sub convertToChothia
     my $end_idx = scalar(@seq) - 12;
     my @region_ends = map { $_ eq 'END' ? $end_idx : $_ } @{$type_info->{region_ends}};
 
-    my @converted_seq;
-    my @chothia_numbering;
+    my @converted;
+    my @numbering;
     my $ignore_start_gaps = 3;
     for my $i (0 .. $#region_names)
     {
@@ -90,15 +90,22 @@ sub convertToChothia
                                              $type_info->{res_till_chothia_insetions});
         }
 
-        push @chothia_numbering, formNumbering($type_info->{numbering_start}[$i],
+        push @numbering, formNumbering($type_info->{numbering_start}[$i],
                                                $type_info->{numbering_end}[$i],
                                                $insertions,
                                                $type_info->{insertion_positions}[$i]);
 
-        push @converted_seq, @region;
+        push @converted, @region;
     }
-
-    return \@converted_seq, \@chothia_numbering;
+    if($if_filter_gaps != 0)
+    {
+        my ($f_converted, $f_numbering) =  filterGaps(\@converted, \@numbering);
+        @converted = @$f_converted;
+        @numbering = @$f_numbering;
+    }
+    return \@converted, \@numbering;
 }
+
+
 
 1;

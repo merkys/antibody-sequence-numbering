@@ -10,7 +10,7 @@ my @modifiedOutput;
 for my $line (split("\n", $anarciOutput))
 {
 	#$1 seq type $2 aminoacid number $3 insertion code $4 aminoacid name
-	$line =~/(H|L)\s+(\d+)\s+([A-Z])?\s([A-Z-])/;
+	$line =~/(H|L)\s+(\d+)\s+([A-Z])?\s([A-Z])/;
 	if(defined $3)
 	{
 		push @modifiedOutput, $4 .  "\t" . $2 ." " . lc($3) . "\t\n";

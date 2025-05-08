@@ -9,9 +9,9 @@ our @EXPORT_OK = qw(convertImgt);
 
 sub convertImgt
 {
-    my ($seq, $domain, $scheme) = @_;
-    return convertToKabat($seq, $domain) if $scheme eq 'kabat';
-    return convertToChothia($seq, $domain) if $scheme eq 'chothia';
+    my ($seq, $domain, $scheme, $if_filter_gaps) = @_;
+    return convertToKabat($seq, $domain, $if_filter_gaps) if $scheme eq 'kabat';
+    return convertToChothia($seq, $domain, $if_filter_gaps) if $scheme eq 'chothia';
 }
 
 1;
