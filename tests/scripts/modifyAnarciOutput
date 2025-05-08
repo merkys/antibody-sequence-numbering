@@ -21,7 +21,8 @@ for my $line (split("\n", $anarciOutput))
 	}
 }
 
-for my $line (@modifiedOutput)
+my $n = scalar @modifiedOutput;
+for my $i ( 3 .. $n-4 )
 {
-	print $line;
+    print $modifiedOutput[$i];
 }

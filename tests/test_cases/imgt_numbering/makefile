@@ -65,15 +65,15 @@ test_homo: ${HOMO_HEAVY_DIFF_FILES} ${HOMO_LAMBDA_DIFF_FILES} ${HOMO_KAPPA_DIFF_
 	@echo "Empty diff files: $(shell find diffs/homo_sapiense -type f -name "*.diff" -empty | wc -l)"
 
 ${HOMO_HEAVY_DIFF_DIR}/%.diff: ${HOMO_HEAVY_ANARCI_OUT_DIR}/%.out ${HOMO_HEAVY_FASTA_DIR}/%.fasta
-	-./numberAntibodySeq -i $(word 2,$^) | tail -n +4 | head -n -1 | diff -w -y --suppress-common-lines - $< > $@
+	-./numberAntibodySeq -i $(word 2,$^) | tail -n +7 | head -n -4 | diff -w -y --suppress-common-lines - $< > $@
 	
 
 ${HOMO_LAMBDA_DIFF_DIR}/%.diff: ${HOMO_LAMBDA_ANARCI_OUT_DIR}/%.out ${HOMO_LAMBDA_FASTA_DIR}/%.fasta
-	-./numberAntibodySeq -i $(word 2,$^) | tail -n +4 | head -n -1 | diff -w -y --suppress-common-lines - $< > $@
+	-./numberAntibodySeq -i $(word 2,$^) | tail -n +7 | head -n -4 | diff -w -y --suppress-common-lines - $< > $@
 
 
 ${HOMO_KAPPA_DIFF_DIR}/%.diff: ${HOMO_KAPPA_ANARCI_OUT_DIR}/%.out ${HOMO_KAPPA_FASTA_DIR}/%.fasta
-	-./numberAntibodySeq -i $(word 2,$^) | tail -n +4 | head -n -1 | diff -w -y --suppress-common-lines - $< > $@
+	-./numberAntibodySeq -i $(word 2,$^) | tail -n +7 | head -n -4 | diff -w -y --suppress-common-lines - $< > $@
 
 
 ${HOMO_LAMBDA_ANARCI_OUT_DIR}/%.out: ${HOMO_LAMBDA_FASTA_DIR}/%.fasta
@@ -89,9 +89,7 @@ ${HOMO_KAPPA_ANARCI_OUT_DIR}/%.out: ${HOMO_KAPPA_FASTA_DIR}/%.fasta
 
 
 
-distclean_homo:
-	$(MAKE) clean_homo_out
-	$(MAKE) clean_homo_diffs
+distclean_homo: clean_homo_out clean_homo_diffs
 
 
 clean_homo_out:
@@ -139,11 +137,11 @@ test_mus: ${MUS_HEAVY_DIFF_FILES} ${MUS_KAPPA_DIFF_FILES}
 	@echo "Empty diff files: $(shell find diffs/mus_musculus -type f -name "*.diff" -empty | wc -l)"
 
 ${MUS_HEAVY_DIFF_DIR}/%.diff: ${MUS_HEAVY_ANARCI_OUT_DIR}/%.out ${MUS_HEAVY_FASTA_DIR}/%.fasta
-	-./numberAntibodySeq -i $(word 2,$^) | tail -n +4 | head -n -1 | diff -w -y --suppress-common-lines - $< > $@
+	-./numberAntibodySeq -i $(word 2,$^) | tail -n +7 | head -n -4 | diff -w -y --suppress-common-lines - $< > $@
 	
 
 ${MUS_KAPPA_DIFF_DIR}/%.diff: ${MUS_KAPPA_ANARCI_OUT_DIR}/%.out ${MUS_KAPPA_FASTA_DIR}/%.fasta
-	-./numberAntibodySeq -i $(word 2,$^) | tail -n +4 | head -n -1 | diff -w -y --suppress-common-lines - $< > $@
+	-./numberAntibodySeq -i $(word 2,$^) | tail -n +7 | head -n -4 | diff -w -y --suppress-common-lines - $< > $@
 
 
 ${MUS_HEAVY_ANARCI_OUT_DIR}/%.out: ${MUS_HEAVY_FASTA_DIR}/%.fasta
@@ -154,9 +152,9 @@ ${MUS_KAPPA_ANARCI_OUT_DIR}/%.out: ${MUS_KAPPA_FASTA_DIR}/%.fasta
 	ANARCI -i $< | ./${MODYFIE_ANARI_OUT} >$@
 
 
-distclean_mus:
-	$(MAKE) clean_mus_out
-	$(MAKE) clean_mus_diffs
+distclean_mus: clean_mus_out clean_mus_diffs
+
+
 	
 
 clean_mus_out:

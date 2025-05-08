@@ -38,10 +38,8 @@ sub formNumbering
 
 sub countInsertions
 {
-    my ($max_region_length, $current_region_length,
-        $structual_gaps, $max_insertions_count) = @_;
-         
-    return ($current_region_length + $structual_gaps + $max_insertions_count) - $max_region_length;
+    my ($max_esential_resiudes, $current_region_length) = @_;
+    return $current_region_length - $max_esential_resiudes
 }
 
 sub countInsertionsCdr3
@@ -51,46 +49,33 @@ sub countInsertionsCdr3
     return $insertions
 }
 
+
 sub convertRegion
 {
-    my ($cdr_array_ref, $structural_gaps,
-        $max_insertion_count, $skip_res) = @_;
-    # structural_gaps - count of IMGT-specific structural gaps
-        # Structural gaps introduced to maintain a consistent numbering scheme
-        # They have to be deleted
-    # max_insertion - max insertions count in current region
-    # skip_res - count of resiues that always have to be in scheme
-        # could be gaps
+    my ($cdr_array_ref, $max_esential_resiudes, 
+            $gaps_to_ignore) = @_;
     
-    my $max_possible_gaps = $structural_gaps + $max_insertion_count;
+    my $gaps_to_delete = @$cdr_array_ref - $max_esential_resiudes;
     my @good_indices;
-    my $gaps_counter = 0;
-    for (@$cdr_array_ref)
-    {
-        $gaps_counter++ if $_ eq '-';
-    }
-     
-    my $true_gaps = $gaps_counter - $max_possible_gaps;
     for( my $i = 0; $i < @$cdr_array_ref; $i++)
     {
-        if($i < $skip_res)
+        if($cdr_array_ref->[$i] ne '-' or $gaps_to_ignore > $i)
         {
-            $true_gaps-- if($cdr_array_ref->[$i] eq '-');
             push @good_indices, $i;
             next;
         }
-        if($cdr_array_ref->[$i] ne '-')
+        
+        if($gaps_to_delete > 0 and $cdr_array_ref->[$i] eq '-')
         {
-            push @good_indices, $i;
+            $gaps_to_delete--;
         }
-        elsif($true_gaps > 0)
+        else
         {
             push @good_indices, $i;
-            $true_gaps--;
         }
     }
-    
     return \@good_indices
 }
+
 
 1;

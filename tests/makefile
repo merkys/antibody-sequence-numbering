@@ -23,6 +23,9 @@ generate_dirs:
 	mkdir -p ${ALL_DIRS}
 
 #---------------------------------------------------------------------------------------------------------------------------------
+## Constants
+SEQ_N = 500
+
 ## External File links 
 SEQ_FROM_PDB_LINK = https://files.wwpdb.org/pub/pdb/derived_data/pdb_seqres.txt.gz
 
@@ -52,10 +55,10 @@ prepare_data: ${SAMPLED_FASTA_FILES}
 	done
 
 $(RAW_DATA_DIR)/homo_sapiense/sampled_fasta/%.fasta: $(RAW_DATA_DIR)/homo_sapiense/fasta/%.fasta
-	seqkit sample -n 200 -w 0 -o $@ $<
+	seqkit sample -n ${SEQ_N} -w 0 -o $@ $<
 
 $(RAW_DATA_DIR)/mus_musculus/sampled_fasta/%.fasta: $(RAW_DATA_DIR)/mus_musculus/fasta/%.fasta
-	seqkit sample -n 200 -w 0 -o $@ $<
+	seqkit sample -n ${SEQ_N} -w 0 -o $@ $<
 
 
 ${HOMO_SORTED_FASTA_FILES}: ${ALL_SEQ_FILE}
@@ -64,6 +67,10 @@ ${HOMO_SORTED_FASTA_FILES}: ${ALL_SEQ_FILE}
 ${MUS_SORTED_FASTA_FILES}: ${ALL_SEQ_FILE}
 	./${GREP_ANTOBODIES} ${RAW_DATA_DIR}/mus_musculus/anotation_file.tsv ${ALL_SEQ_FILE} ${RAW_DATA_DIR}/mus_musculus/fasta
 
+
+clean_sampled_fasta:
+	rm -rf $(RAW_DATA_DIR)/mus_musculus/sampled_fasta/*
+	rm -rf $(RAW_DATA_DIR)/homo_sapiense/sampled_fasta/*
 
 clean_data:
 	rm -rf $(DATA_DIR)/homo_sapiense/heavy/*
@@ -77,6 +84,14 @@ ${ALL_SEQ_FILE}:
 	wget -O $@ ${SEQ_FROM_PDB_LINK}
 #---------------------------------------------------------------------------------------------------------------------------------
 .PHONY: test_all
+
+distclean_all:
+	@$(MAKE) -C test_cases/imgt_numbering distclean_homo
+	@$(MAKE) -C test_cases/imgt_numbering distclean_mus
+	@$(MAKE) -C test_cases/kabat_convertation distclean_homo
+	@$(MAKE) -C test_cases/kabat_convertation distclean_mus
+	@$(MAKE) -C test_cases/chothia_convertation distclean_homo
+	@$(MAKE) -C test_cases/chothia_convertation distclean_mus
 
 test_all:
 	@$(MAKE) -C test_cases/imgt_numbering test_all
