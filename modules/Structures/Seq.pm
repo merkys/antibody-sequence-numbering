@@ -13,8 +13,6 @@ sub new
                  organism => $domain_ref-> {organism},
                  score	  => $domain_ref-> {score},
                  bias	  => $domain_ref-> {bias},
-                 FRs      => [],
-                 CDRs	  => [],
                  aligned_seq	=> undef,
                  fixed_seq	=> '',
                  insertion_count	=> ''};

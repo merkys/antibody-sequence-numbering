@@ -85,6 +85,12 @@ ${ALL_SEQ_FILE}:
 #---------------------------------------------------------------------------------------------------------------------------------
 .PHONY: test_all
 
+
+clean_all_diffs:
+	@$(MAKE) -C test_cases/imgt_numbering clean_all_diffs
+	@$(MAKE) -C test_cases/kabat_convertation clean_all_diffs
+	@$(MAKE) -C test_cases/chothia_convertation clean_all_diffs
+
 distclean_all:
 	@$(MAKE) -C test_cases/imgt_numbering distclean_homo
 	@$(MAKE) -C test_cases/imgt_numbering distclean_mus

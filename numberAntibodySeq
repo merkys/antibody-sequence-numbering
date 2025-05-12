@@ -46,7 +46,7 @@ GetOptions( "scheme|s=s"  => \$numberingScheme,
 
 $numberingScheme ||= 'imgt';
 $error_fix_mode ||= 'fit';
-$is_filter_gaps ||= 0;;
+$is_filter_gaps ||= 0;
 if(!$supportedSchemes{lc($numberingScheme)})
 {
     warn "This scheme is not supported: $numberingScheme\n";
@@ -85,18 +85,20 @@ my @HMM_models;
 my $output = '';
 for my $model (@HMM_models)
 {
-    my $seq = $model->getSequence();
-    my ($numbered_seq, $numbering_ref) = numberSeq($seq, $error_fix_mode);
-    if($numberingScheme ne 'imgt')
+    for my $seq (@{$model->getSequences()})
     {
-       ($numbered_seq, $numbering_ref) = convertImgt($numbered_seq,
-                                                    $seq->getDomain(),
-                                                    $numberingScheme,
-                                                    $is_filter_gaps);
+        my ($numbered_seq, $numbering_ref) = numberSeq($seq, $error_fix_mode);
+        if($numberingScheme ne 'imgt')
+        {
+           ($numbered_seq, $numbering_ref) = convertImgt($numbered_seq,
+                                                        $seq->getDomain(),
+                                                        $numberingScheme,
+                                                        $is_filter_gaps);
+        }
+        $output .= generateStandartOut($seq->getHeader(), $numbered_seq,
+                                       $seq->getDomain(), $seq->getOrganism(),
+                                       $numbering_ref);
     }
-    $output .= generateStandartOut($seq->getHeader(), $numbered_seq,
-                                   $seq->getDomain(), $seq->getOrganism(),
-                                   $numbering_ref);
 }
 
 my $out_fh = *STDOUT;

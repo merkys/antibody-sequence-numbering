@@ -1,0 +1,16 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my @my_output = <STDIN>;
+my $my_output = join('', @my_output);
+$my_output =~ s/^#.*\n//mg;
+$my_output =~ s/^\/\/\n//mg;
+
+my @modified_output = split /\n/, $my_output;
+@modified_output = grep { $_ !~ /^\s+$/ } @modified_output;
+my $n = scalar @modified_output;
+for my $i ( 3 .. $n-4 )
+{
+    print $modified_output[$i] . "\n";
+}
