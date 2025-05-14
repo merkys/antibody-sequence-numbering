@@ -18,7 +18,7 @@ BEGIN {
     }
 }
 use IO::FastaParser qw(readFasta);
-use IO::Exporter qw(generateStandartOut);
+use IO::DataPrinter qw(generateStandartOut);
 use Structures::HMM_model;
 use NumTools::IMGT qw(numberSeq);
 use NumTools::Converter qw(convertImgt);
