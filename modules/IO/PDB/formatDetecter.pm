@@ -1,4 +1,4 @@
-package PDB::formatDetecter;
+package IO::PDB::formatDetecter;
 
 use strict;
 use warnings;

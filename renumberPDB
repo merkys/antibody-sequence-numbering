@@ -1,0 +1,97 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use Cwd;
+use Getopt::Long;
+use FindBin;
+use File::Spec;
+
+BEGIN {
+    my @dirs = grep { -d $_ } glob(File::Spec->catdir($FindBin::Bin, 'modules', '*'));
+    unshift @INC, "$FindBin::Bin/modules";
+    for my $dir (@dirs)
+    {
+        unshift @INC, $dir;
+    }
+}
+
+use Structures::HMM_model;
+use NumTools::IMGT qw(numberSeq);
+use NumTools::Converter qw(convertImgt);
+use IO::DataPrinter qw(generateStandartOut);
+use IO::PDB::formatDetecter qw(detectFormat);
+use IO::PDB::PDBparcer qw(readPDB readMMCIF);
+use IO::PDB::PDBexporter qw(renumberPDB);
+
+sub usage
+{
+    die "usage\n";
+}
+
+my %supportedSchemes = ( 'kabat'  => 1,
+                         'chothia'=> 1 );
+
+my %supported_fix_mods = ( 'no_fit' => 1,
+                           'fit'    => 1 );
+
+my ($numbering_scheme, $pdb_file, $file_type, $output_file, $error_fix_mode);
+
+GetOptions( "scheme|s=s"  => \$numbering_scheme,
+            "output|o=s"  => \$output_file,
+            "input|i=s"   => \$pdb_file,
+            "fileType|t=s" => \$file_type) or usage();
+
+$numbering_scheme ||= 'kabat';
+$error_fix_mode ||= 'fit';
+if(!$supportedSchemes{lc($numbering_scheme)})
+{
+    warn "This scheme is not supported: $numbering_scheme\n";
+    print "Supported schemes:\n";
+    die join("\n", keys %supportedSchemes), "\n";
+}
+
+$file_type = detectFormat($pdb_file) if not $file_type;
+die "Could not idetify file type $pdb_file: $!" if $file_type eq 'unknown';
+
+my ($chains_ref, $sequences_ref) = $file_type eq 'cif'
+                                  ? readMMCIF($pdb_file)
+                                  : readPDB  ($pdb_file);
+
+my @HMM_models;                      
+for( my $i = 0; $i < (@$sequences_ref); $i++ )
+{
+     my $custom_seq_ref = {id     => $chains_ref->[$i],
+                           header => $chains_ref->[$i],
+                           seq    => $sequences_ref->[$i]};
+                           
+     push @HMM_models, Structures::HMM_model->new($custom_seq_ref);
+}
+
+
+my $is_filter_gaps = 1;
+my @new_numbering;
+for my $model (@HMM_models)
+{
+    for my $seq (@{$model->getSequences()})
+    {
+        my ($numbered_seq, $numbering_ref) = numberSeq($seq, $error_fix_mode);
+           ($numbered_seq, $numbering_ref) = convertImgt($numbered_seq,
+                                                        $seq->getDomain(),
+                                                        $numbering_scheme,
+                                                        $is_filter_gaps);
+        push @new_numbering, $numbering_ref;
+    }
+}
+my $output = renumberPDB($pdb_file, $chains_ref, \@new_numbering);
+
+my $out_fh = *STDOUT;
+if($output_file)
+{
+    open($out_fh, '>', $output_file)
+        or die "Could not open file: $output_file: $!";
+}
+print $out_fh $output;
+close($out_fh) if $output_file;
+
+
