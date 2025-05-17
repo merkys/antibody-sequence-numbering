@@ -3,6 +3,7 @@ package IMGT_Utils::Cdr;
 use strict;
 use warnings;
 use POSIX qw(ceil);
+use List::Util qw(sum);
 use Exporter 'import';
 our @EXPORT_OK = qw(fixCdrS);
 
@@ -23,21 +24,23 @@ use constant { CDR1_MAX_LEN => 12,
        
 sub fixCdrS
 {
-    my ($fixed_seq_ref) = @_;
+    my ($fixed_seq_ref, $ins_vector) = @_;
     my $clone_ref = [ @{$fixed_seq_ref} ];
-
+    my $off1 = sum( @{$ins_vector}[ 0 .. FR1_END - 1 ] );
+    my $off2 = sum( @{$ins_vector}[ 0 .. FR2_END - 1 ] );
+    my $off3 = sum( @{$ins_vector}[ 0 .. FR3_END - 1 ] );
     splice @$clone_ref,
-        FR1_END, CDR1_END - FR1_END,
-        fixCdr([ @$clone_ref[FR1_END..CDR1_END-1] ], CDR1_MAX_LEN);
+        FR1_END + $off1, CDR1_END - FR1_END,
+        fixCdr([ @$clone_ref[ (FR1_END + $off1) .. (CDR1_END + $off1 - 1) ] ], CDR1_MAX_LEN);
     
     
     splice @$clone_ref,
-        FR2_END, CDR2_END - FR2_END,
-        fixCdr([ @$clone_ref[FR2_END..CDR2_END-1] ], CDR2_MAX_LEN);
+        FR2_END + $off2, CDR2_END - FR2_END,
+        fixCdr([ @$clone_ref[ (FR2_END + $off2) .. ( CDR2_END + $off2 -1) ] ], CDR2_MAX_LEN);
 
     splice @$clone_ref,
-        FR3_END, CDR3_END - FR3_END,
-        fixCdr([ @$clone_ref[FR3_END..CDR3_END-1] ], CDR3_MAX_LEN);
+        FR3_END + $off3, CDR3_END - FR3_END,
+        fixCdr([ @$clone_ref[(FR3_END + $off3) .. ( CDR3_END + $off3 -1 )] ], CDR3_MAX_LEN);
     
     return $clone_ref;
 }

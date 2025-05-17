@@ -15,7 +15,7 @@ sub new
                  bias	  => $domain_ref-> {bias},
                  aligned_seq	=> undef,
                  fixed_seq	=> '',
-                 insertion_count	=> ''};
+                 };
     return bless $self, $class;
 }
 
@@ -50,30 +50,6 @@ sub getHeader
 	return $self -> {header}
 }
 
-sub addFr
-{
-	my ($self, $fr) = @_;
-	push @{$self -> {FRs}}, $fr; 
-}
-
-sub getFr
-{
-	my ($self, $index) = @_;
-	return $self -> {FRs}[$index]
-}
-
-sub addCdr
-{
-	my ($self, $cdr) = @_;
-	push @{$self -> {CDRs}}, $cdr; 
-}
-
-sub getCdr
-{
-	my ($self, $index) = @_;
-	return $self -> {CDRs}[$index]
-}
-
 sub setAlignedSeq
 {
 	my ($self, $aligned_seq) = @_;
@@ -96,18 +72,6 @@ sub getFixedSeq
 {
 	my ($self) = @_;
 	return $self -> {fixed_seq}
-}
-
-sub setInsertionCount
-{
-	my ($self, $insertion_count) = @_;
-	return $self -> {insertion_count} = $insertion_count;
-}
-
-sub getInsertionCount
-{
-	my ($self) = @_;
-	return $self -> {insertion_count}
 }
 
 sub setImgtNumbering

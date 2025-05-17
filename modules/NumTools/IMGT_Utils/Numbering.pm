@@ -3,6 +3,7 @@ package IMGT_Utils::Numbering;
 use strict;
 use warnings;
 use POSIX qw(ceil);
+use List::Util qw(sum);
 use Exporter 'import';
 our @EXPORT_OK = qw(formNumbering);
 
@@ -21,32 +22,47 @@ use constant {INSERTION_START => 111,
               INSERTION_END   => 112,
               WITHOUT_INS_LEN => 24};
 
+use constant {A_CHAR_CODE => 65};
+
 sub formNumbering
 {
-    my ($seq) = @_;
-    my $insertion_count = checkInsertion($seq);
-    return [ NUMBERING_START .. NUMBERING_END ] if not $insertion_count;
+    my ($seq, $ins_vector, $ins_offset) = @_;
+    return [ NUMBERING_START .. NUMBERING_END ] if sum(@$ins_vector) == 0;
 	
-    my @numbering = ( NUMBERING_START .. INSERTION_START);
-    my $insertion_right = ceil($insertion_count/2);
-    my $insertion_left = $insertion_count - $insertion_right;
+    my @numbering;
+    my $index = NUMBERING_START - 1;
+    my $ins_code = A_CHAR_CODE;
+    for( my $i = 0; $i < INSERTION_START + $ins_offset; $i++)
+    {
+    	if($ins_vector->[$i])
+    	{
+    	    push @numbering, $index . " " . lc(chr($ins_code));
+    	    $ins_code++;
+    	}
+    	else
+    	{
+            $index++;
+    	    push @numbering, $index;
+    	    $ins_code = A_CHAR_CODE;
+    	}
+    }
+    my $cdr_3_ins = _countInsertions($ins_vector, FR3_END + $ins_offset);
+    if( $cdr_3_ins == 0)
+    {
+        push @numbering, ( $index + 1 .. NUMBERING_END );
+        return \@numbering;
+    }
+    
+    my $insertion_right = ceil($cdr_3_ins/2);
+    my $insertion_left = $cdr_3_ins - $insertion_right;
     push @numbering, map { INSERTION_START . ' ' . lc(chr(65 + $_)) } (0 .. $insertion_left - 1);
     push @numbering, map { INSERTION_END . ' ' . lc(chr(64 + $insertion_right - $_)) } (0 .. $insertion_right - 1);
-
     push @numbering, ( INSERTION_END .. NUMBERING_END );
-	
     return \@numbering
 }
 
-sub checkInsertion
+sub _countInsertions
 {
-    my ($seq) = @_;
-    my $tillTheEnd_length =  length(join("", @{ $seq }[ FR3_END .. (scalar(@{$seq}) - 1) ]));
-    my $insertion_count = 0;
-    if($tillTheEnd_length > WITHOUT_INS_LEN)
-    {
-        $insertion_count = $tillTheEnd_length - WITHOUT_INS_LEN;
-    }
-	
-    return $insertion_count
+    my ($ins_vector, $start) = @_;	
+    return sum(@$ins_vector[ $start .. $#$ins_vector ])
 }

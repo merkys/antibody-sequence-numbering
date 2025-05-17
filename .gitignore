@@ -16,3 +16,7 @@ investigation/raw_data/homo_sapiens/pdb/*
 investigation/raw_data/homo_sapiens/id/*
 investigation/raw_data/mus_musculus/pdb/*
 investigation/raw_data/mus_musculus/id/*
+*.txt
+*.imgt
+*.kabat
+*.chothia
