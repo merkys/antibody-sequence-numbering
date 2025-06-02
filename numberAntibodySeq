@@ -47,18 +47,14 @@ GetOptions( "scheme|s=s"  => \$numberingScheme,
 $numberingScheme ||= 'imgt';
 $error_fix_mode ||= 'fit';
 $is_filter_gaps ||= 0;
-if(!$supportedSchemes{lc($numberingScheme)})
-{
-    warn "This scheme is not supported: $numberingScheme\n";
-    print "Supported schemes:\n";
-    die join("\n", keys %supportedSchemes), "\n";
+if( !$supportedSchemes{lc($numberingScheme)} ) {
+    die "scheme '$numberingScheme' is not supported, supported schemes: " .
+        join( ', ', sort keys %supportedSchemes ) . "\n";
 }
 
-if(!$supported_fix_mods{lc($error_fix_mode)})
-{
-    warn "This mode is not supported: $error_fix_mode\n";
-    print "Supported mods:\n";
-    die join("\n", keys %supported_fix_mods), "\n";
+if( !$supported_fix_mods{lc($error_fix_mode)} ) {
+    die "fix mode '$error_fix_mode' is not supported, supported modes: " .
+        join( ', ', sort keys %supported_fix_mods ) . "\n";
 }
 
 my $fh = *STDIN;
