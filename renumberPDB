@@ -21,7 +21,7 @@ use NumTools::IMGT qw(numberSeq);
 use NumTools::Converter qw(convertImgt);
 use IO::DataPrinter qw(generateStandartOut);
 use IO::PDB::FormatDetector qw(detectFormat);
-use IO::PDB::PDBparcer qw(readPDB readMMCIF);
+use IO::PDB::Parser qw(readPDB readMMCIF);
 use IO::PDB::PDBexporter qw(renumberPDB);
 
 sub usage

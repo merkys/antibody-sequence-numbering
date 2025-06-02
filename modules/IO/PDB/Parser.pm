@@ -1,4 +1,4 @@
-package IO::PDB::PDBparcer;
+package IO::PDB::Parser;
 
 use strict;
 use warnings;
