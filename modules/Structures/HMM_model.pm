@@ -12,7 +12,7 @@ sub new
     
     my $tmp_fasta = writeFastaToTMP($seq_ref->{id}, $seq_ref->{seq});
     my $hmm_scan_out = runHmmScan($tmp_fasta);
-    my $parced_data = parceDomainHits($hmm_scan_out);
+    my $parced_data = parseDomainHits($hmm_scan_out);
     my $target_organism = findBestOrganism($parced_data);
     my $sequences = detectSequences($parced_data, $target_organism);
     my @seq_objects;
@@ -85,7 +85,7 @@ sub runHmmScan
     return \@domain_hits
 }
 
-sub parceDomainHits
+sub parseDomainHits
 {
     my ($hmm_scan_out) = @_;
     my @hits;

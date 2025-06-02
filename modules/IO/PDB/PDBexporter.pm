@@ -42,7 +42,7 @@ sub renumberPDB
                 $current_ins = $res_ins;
                 if($numbering_ref->[$chain_vector_index]->[$numbering_vector_inddex])
                 {
-                    ($numbering, $ins) = _parce_numbering($numbering_ref->[$chain_vector_index]->[$numbering_vector_inddex]);
+                    ($numbering, $ins) = _parse_numbering($numbering_ref->[$chain_vector_index]->[$numbering_vector_inddex]);
                     $numbering_vector_inddex++;
                 }
                 else
@@ -72,7 +72,7 @@ sub renumberPDB
     return $output
 }
 
-sub _parce_numbering
+sub _parse_numbering
 {
     my ($numbering_unit) = @_;
     $numbering_unit =~ /^(\d+)\s*([A-Za-z])?$/;
