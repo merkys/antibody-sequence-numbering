@@ -12,9 +12,9 @@ sub new
     
     my $tmp_fasta = writeFastaToTMP($seq_ref->{id}, $seq_ref->{seq});
     my $hmm_scan_out = runHmmScan($tmp_fasta);
-    my $parced_data = parseDomainHits($hmm_scan_out);
-    my $target_organism = findBestOrganism($parced_data);
-    my $sequences = detectSequences($parced_data, $target_organism);
+    my $parsed_data = parseDomainHits($hmm_scan_out);
+    my $target_organism = findBestOrganism($parsed_data);
+    my $sequences = detectSequences($parsed_data, $target_organism);
     my @seq_objects;
     for my $seq (@$sequences)
     {
