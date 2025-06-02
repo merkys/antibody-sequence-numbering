@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Cwd;
-use Getopt::Long;
+use Getopt::Long::Descriptive;
 use FindBin;
 use File::Spec;
 
@@ -35,31 +35,33 @@ my %supportedSchemes = ( 'imgt'   => 1,
 my %supported_fix_mods = ( 'no_fit' => 1,
                            'fit'    => 1 );
 
-my ($numberingScheme, $seqFile, $error_fix_mode, $is_filter_gaps);
+my( $opt, $usage ) = describe_options(
+    'Antibody sequence numbering program',
+    [ 'scheme|s=s', 'numbering scheme', { default => 'imgt' } ],
+    [ 'input|i=s', 'input file' ],
+    [ 'errFix|ef=s', 'error fixing mode', { default => 'fit' } ],
+    [ 'filterGaps|fG=s', 'filter gaps?' ],
+    [ 'help|h', 'print usage message and exit', { shortcircuit => 1 } ],
+);
 
-GetOptions( "scheme|s=s"  => \$numberingScheme,
-            "input|i=s"   => \$seqFile,
-            "errFix|ef=s" => \$error_fix_mode,
-            "filterGaps|fG=s" => \$is_filter_gaps) or usage();
+if( $opt->help ) {
+    print $usage->text;
+    exit;
+}
 
-$numberingScheme ||= 'imgt';
-$error_fix_mode ||= 'fit';
-$is_filter_gaps ||= 0;
-if( !$supportedSchemes{lc($numberingScheme)} ) {
-    die "scheme '$numberingScheme' is not supported, supported schemes: " .
+if( !$supportedSchemes{lc($opt->scheme)} ) {
+    die "scheme '" . $opt->scheme . "' is not supported, supported schemes: " .
         join( ', ', sort keys %supportedSchemes ) . "\n";
 }
 
-if( !$supported_fix_mods{lc($error_fix_mode)} ) {
-    die "fix mode '$error_fix_mode' is not supported, supported modes: " .
+if( !$supported_fix_mods{lc($opt->errFix)} ) {
+    die "fix mode '" . $opt->errFix . "' is not supported, supported modes: " .
         join( ', ', sort keys %supported_fix_mods ) . "\n";
 }
 
 my $fh = *STDIN;
-if($seqFile)
-{
-    open($fh, '<', $seqFile)
-        or die "Could not open file: $seqFile";
+if( defined $opt->input ) {
+    open $fh, '<', $opt->input or die "Could not open file: " . $opt->input;
 }
 my @HMM_models;
 {
@@ -72,7 +74,7 @@ my @HMM_models;
         push @HMM_models, Structures::HMM_model->new($seq_ref);
     }
 
-    close($fh) if $seqFile;
+    close($fh) if defined $opt->input;
 }
 
 my $output = '';
@@ -80,13 +82,13 @@ for my $model (@HMM_models)
 {
     for my $seq (@{$model->getSequences()})
     {
-        my ($numbered_seq, $numbering_ref) = numberSeq($seq, $error_fix_mode);
-        if($numberingScheme ne 'imgt')
+        my ($numbered_seq, $numbering_ref) = numberSeq($seq, $opt->errFix);
+        if($opt->scheme ne 'imgt')
         {
            ($numbered_seq, $numbering_ref) = convertImgt($numbered_seq,
-                                                        $seq->getDomain(),
-                                                        $numberingScheme,
-                                                        $is_filter_gaps);
+                                                         $seq->getDomain(),
+                                                         $opt->scheme,
+                                                         $opt->filterGaps);
         }
         $output .= generateStandartOut($seq->getHeader(), $numbered_seq,
                                        $seq->getDomain(), $seq->getOrganism(),
