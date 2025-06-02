@@ -8,7 +8,6 @@ use Getopt::Long;
 use FindBin;
 use File::Spec;
 
-
 BEGIN {
     my @dirs = grep { -d $_ } glob(File::Spec->catdir($FindBin::Bin, 'modules', '*'));
     unshift @INC, "$FindBin::Bin/modules";
@@ -17,12 +16,12 @@ BEGIN {
         unshift @INC, $dir;
     }
 }
+
 use IO::FastaParser qw(readFasta);
 use IO::DataPrinter qw(generateStandartOut);
 use Structures::HMM_model;
 use NumTools::IMGT qw(numberSeq);
 use NumTools::Converter qw(convertImgt);
-
 
 sub usage
 {
@@ -34,7 +33,7 @@ my %supportedSchemes = ( 'imgt'   => 1,
                          'chothia'=> 1 );
 
 my %supported_fix_mods = ( 'no_fit' => 1,
-                           'fit'      => 1 );
+                           'fit'    => 1 );
 
 my ($numberingScheme, $seqFile, $error_fix_mode, $is_filter_gaps);
 
@@ -75,7 +74,6 @@ my @HMM_models;
 
     close($fh) if $seqFile;
 }
-
 
 my $output = '';
 for my $model (@HMM_models)
