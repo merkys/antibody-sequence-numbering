@@ -54,8 +54,8 @@ if( !$supportedSchemes{lc($opt->scheme)} ) {
         join( ', ', sort keys %supportedSchemes ) . "\n";
 }
 
-if( !$supported_fix_mods{lc($opt->errFix)} ) {
-    die "fix mode '" . $opt->errFix . "' is not supported, supported modes: " .
+if( !$supported_fix_mods{lc($opt->errfix)} ) {
+    die "fix mode '" . $opt->errfix . "' is not supported, supported modes: " .
         join( ', ', sort keys %supported_fix_mods ) . "\n";
 }
 
@@ -82,13 +82,13 @@ for my $model (@HMM_models)
 {
     for my $seq (@{$model->getSequences()})
     {
-        my ($numbered_seq, $numbering_ref) = numberSeq($seq, $opt->errFix);
+        my ($numbered_seq, $numbering_ref) = numberSeq($seq, $opt->errfix);
         if($opt->scheme ne 'imgt')
         {
            ($numbered_seq, $numbering_ref) = convertImgt($numbered_seq,
                                                          $seq->getDomain(),
                                                          $opt->scheme,
-                                                         $opt->filterGaps);
+                                                         $opt->filtergaps);
         }
         $output .= generateStandartOut($seq->getHeader(), $numbered_seq,
                                        $seq->getDomain(), $seq->getOrganism(),
