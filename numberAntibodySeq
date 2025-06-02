@@ -36,10 +36,9 @@ my %supportedSchemes = ( 'imgt'   => 1,
 my %supported_fix_mods = ( 'no_fit' => 1,
                            'fit'      => 1 );
 
-my ($numberingScheme, $seqFile, $outputFile, $error_fix_mode, $is_filter_gaps);
+my ($numberingScheme, $seqFile, $error_fix_mode, $is_filter_gaps);
 
 GetOptions( "scheme|s=s"  => \$numberingScheme,
-            "output|o=s"  => \$outputFile,
             "input|i=s"   => \$seqFile,
             "errFix|ef=s" => \$error_fix_mode,
             "filterGaps|fG=s" => \$is_filter_gaps) or usage();
@@ -97,13 +96,4 @@ for my $model (@HMM_models)
     }
 }
 
-my $out_fh = *STDOUT;
-if($outputFile)
-{
-    open($out_fh, '>', $outputFile)
-        or die "Could not open file: $outputFile";
-}
-print $out_fh $output;
-close($out_fh) if $outputFile;
-
-
+print $output;
