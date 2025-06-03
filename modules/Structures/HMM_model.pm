@@ -11,13 +11,12 @@ sub new
     my ($class, $seq_ref) = @_;
     
     my $tmp_fasta = writeFastaToTMP($seq_ref->{id}, $seq_ref->{seq});
-    my $hmm_scan_out = runHmmScan($tmp_fasta);
-    my @parsed_data = parseDomainHits(@$hmm_scan_out);
+    my @hmm_scan_out = runHmmScan($tmp_fasta);
+    my @parsed_data = parseDomainHits(@hmm_scan_out);
     my $target_organism = findBestOrganism(@parsed_data);
-    my $sequences = detectSequences(\@parsed_data, $target_organism);
+    my @sequences = detectSequences(\@parsed_data, $target_organism);
     my @seq_objects;
-    for my $seq (@$sequences)
-    {
+    for my $seq (@sequences) {
         my $from = $seq->{start} - 1;
         my $to = $seq ->{end} - 1;
         my @sub_seq = @{ $seq_ref->{seq} }[ $from .. $to ];
@@ -75,14 +74,14 @@ sub runHmmScan
     my $command = "hmmscan $params $hmm_file $tmp_fasta > /dev/null 2>&1";
     qx($command);
     
-    open(my $tblout_fh, "<", $dom_tblout)
+    open my $tblout_fh, '<', $dom_tblout
         or die "Could not open hmmscan domain table out file: $dom_tblout";
     
     local $/ = "\n";
     my @domain_hits = grep { !(/^#/) } <$tblout_fh>;
     
-    close($tblout_fh);
-    return \@domain_hits;
+    close $tblout_fh;
+    return @domain_hits;
 }
 
 sub parseDomainHits
@@ -119,14 +118,13 @@ sub detectSequences
     my ($domain_hits, $target_organism) = @_;
     
     my @hits = grep { $_->{organism} eq $target_organism } @$domain_hits;
-    return [] unless @hits;
-    
-    
+    return () unless @hits;
+
     @hits = sort { $a->{start} <=> $b->{start} } @hits;
     my @segments;
     for my $hit (@hits)
     {
-        my ($f, $t) = ($hit->{start}, $hit->{end});  # ali_from, ali_to
+        my ($f, $t) = ($hit->{start}, $hit->{end}); # ali_from, ali_to
         if (!@segments || $f > $segments[-1]{end})
         {
             push @segments, { start => $f, end => $t, hits => [ $hit ] };
@@ -143,28 +141,26 @@ sub detectSequences
     {
         my @h = @{ $seg->{hits} };
         
-        if (my ($heavy) = grep { $_->{domain} eq 'IGH' } @h)
-        {
+        if( my( $heavy ) = grep { $_->{domain} eq 'IGH' } @h ) {
             push @sequences, { domain => 'IGH',
-                               start => $seg->{start},
-                               end   => $seg->{end},
-                               bias  => $heavy->{bias},
-                               score => $heavy->{score}};
+                               start  => $seg->{start},
+                               end    => $seg->{end},
+                               bias   => $heavy->{bias},
+                               score  => $heavy->{score} };
         }
         
-        my @light = grep { $_->{domain} eq 'IGK' || $_->{domain} eq 'IGL' } @h;
-        if (@light)
-        {
-            my ($best) = sort { $b->{score} <=> $a->{score} } @light;
-            push @sequences, { domain  => $best->{domain},
-                               start => $seg->{start},
-                               end   => $seg->{end},
-                               bias  => $best->{bias},
-                               score => $best->{score}};
+        my @light = grep { $_->{domain} =~ /^IG[KL]$/ } @h;
+        if( @light ) {
+            my( $best ) = sort { $b->{score} <=> $a->{score} } @light;
+            push @sequences, { domain => $best->{domain},
+                               start  => $seg->{start},
+                               end    => $seg->{end},
+                               bias   => $best->{bias},
+                               score  => $best->{score} };
         }
     }
     
-    return \@sequences;
+    return @sequences;
 }
 
 sub alignToDomain
