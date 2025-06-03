@@ -50,13 +50,12 @@ my ($chains_ref, $sequences_ref) = $file_type eq 'cif'
                                   : readPDB  ($pdb_file);
 
 my @HMM_models;                      
-for( my $i = 0; $i < (@$sequences_ref); $i++ )
-{
+for( my $i = 0; $i < @$sequences_ref; $i++ ) {
      my $custom_seq_ref = {id     => $chains_ref->[$i],
                            header => $chains_ref->[$i],
                            seq    => $sequences_ref->[$i]};
                            
-     push @HMM_models, Structures::HMM_model->new($custom_seq_ref);
+     push @HMM_models, Structures::HMM_model->new( $custom_seq_ref );
 }
 
 
@@ -73,4 +72,4 @@ for my $model (@HMM_models) {
     }
 }
 
-print renumberPDB($pdb_file, $chains_ref, \@new_numbering);
+print renumberPDB( $pdb_file, $chains_ref, \@new_numbering );
