@@ -31,7 +31,7 @@ my %KabatTypes = (                  #FR1   CDR1  FR2    CDR2   FR3    CDR3   FR4
     numbering_start              => [ 1,     27, 35,    50,    53,    89,    98    ], # Region Start Indices,       KABAT
     numbering_end                => [ 26,    34, 49,    52,    88,    97,    107   ], # Region END   Indices,       KABAT
     insertion_positions          => [ undef, 27, undef, undef, undef, 95,    106   ], # Region Insertions positions,KABAT
-    esenntial_residues_count     => [ 26,    8,   15,    3,     36,    6,    10    ],
+    essential_residues_count     => [ 26,    8,   15,    3,     36,    6,    10    ],
     res_till_kabat_insetions     => 7,
   },
   IGK => {                           #FR1   CDR1  FR2    CDR2   FR3    CDR3   FR4
@@ -40,7 +40,7 @@ my %KabatTypes = (                  #FR1   CDR1  FR2    CDR2   FR3    CDR3   FR4
     numbering_start              => [ 1,     27,  35,    50,    53,    89,    98    ],
     numbering_end                => [ 26,    34,  49,    52,    88,    97,    107   ],
     insertion_positions          => [ undef, 27,  undef, undef, undef, 95,    106   ],
-    esenntial_residues_count     => [ 26,    8,   15,    3,     36,    6,     10    ],
+    essential_residues_count     => [ 26,    8,   15,    3,     36,    6,     10    ],
     res_till_kabat_insetions     => 7,
   },
   IGH => {                           #FR1   CDR1  FR2    CDR2   FR3    CDR3   FR4
@@ -49,7 +49,7 @@ my %KabatTypes = (                  #FR1   CDR1  FR2    CDR2   FR3    CDR3   FR4
     numbering_start              => [ 1,     26,  36,    51,     58,    93,    103   ],
     numbering_end                => [ 25,    35,  50,    57,     92,    102,   113   ],
     insertion_positions          => [ undef, 35,  undef, 52,     82,    100,   undef ],
-    esenntial_residues_count     => [ 25,    10,  15,    7,      35,    10,    11    ],
+    essential_residues_count     => [ 25,    10,  15,    7,      35,    10,    11    ],
     res_till_kabat_insetions     => 8,
   }
 );
@@ -73,7 +73,7 @@ sub convertToKabat
         my @region = @seq[ $type_info->{region_starts}[$i] .. $region_ends[$i] ];
         
         my $good_idx_ref = convertRegion(\@region,
-                                          $type_info->{esenntial_residues_count}[$i],
+                                          $type_info->{essential_residues_count}[$i],
                                           $ignore_start_gaps);
                                           
         $ignore_start_gaps = 0;
@@ -82,7 +82,7 @@ sub convertToKabat
         my $insertions = 0;
         if ($region_names[$i] =~ /cdr1|cdr2|fr3/)
         {
-            $insertions = countInsertions($type_info->{esenntial_residues_count}[$i],
+            $insertions = countInsertions($type_info->{essential_residues_count}[$i],
                                           scalar(@region));
         }
         elsif ($region_names[$i] eq 'cdr3')

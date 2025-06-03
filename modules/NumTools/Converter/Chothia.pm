@@ -30,7 +30,7 @@ my %CothiaTypes = (
         numbering_start              => [ 1,     27, 35,    50,    53,    89,    98    ], # Region Start Indices,       CHOTHIA
         numbering_end                => [ 26,    34, 49,    52,    88,    97,    107   ], # Region END   Indices,       CHOTHIA
         insertion_positions          => [ undef, 30, undef, undef, undef, 95,    undef ], # Region Insertions positions,CHOTHIA
-        esenntial_residues_count     => [ 26,    8,   15,    3,     36,    6,    10    ], # Quantity of residues that must be in every region
+        essential_residues_count     => [ 26,    8,   15,    3,     36,    6,    10    ], # Quantity of residues that must be in every region
         res_till_chothia_insetions   => 7,
     },
     IGK => {
@@ -39,7 +39,7 @@ my %CothiaTypes = (
         numbering_start              => [ 1,     27, 35,    50,    53,    89,    98    ], # Region Start Indices,       CHOTHIA
         numbering_end                => [ 26,    34, 49,    52,    88,    97,    107   ], # Region END   Indices,       CHOTHIA
         insertion_positions          => [ undef, 30, undef, undef, undef, 95,    undef ], # Region Insertions positions,CHOTHIA
-        esenntial_residues_count     => [ 26,    8,   15,    3,     36,    6,     10   ], # Quantity of residues that must be in every region
+        essential_residues_count     => [ 26,    8,   15,    3,     36,    6,     10   ], # Quantity of residues that must be in every region
         res_till_chothia_insetions   => 7,
     },
     IGH => {
@@ -48,7 +48,7 @@ my %CothiaTypes = (
         numbering_start              => [ 1,     26,  36,    51,     58,    93,    103   ],
         numbering_end                => [ 25,    35,  50,    57,     92,    102,   113   ],
         insertion_positions          => [ undef, 31,  undef, 52,     82,    100,   undef ],
-        esenntial_residues_count     => [ 25,    10,  15,    7,      35,    10,    11    ],
+        essential_residues_count     => [ 25,    10,  15,    7,      35,    10,    11    ],
         res_till_chothia_insetions   => 8,
     },
 );
@@ -74,14 +74,14 @@ sub convertToChothia
         my @region = @seq[ $type_info->{region_starts}[$i] .. $region_ends[$i] ];
 
         my $good_idx_ref = convertRegion(\@region,
-                                          $type_info->{esenntial_residues_count}[$i],
+                                          $type_info->{essential_residues_count}[$i],
                                           $ignore_start_gaps);
         @region = @region[@$good_idx_ref];
         $ignore_start_gaps = 0;
         my $insertions = 0;
         if ($region_names[$i] =~ /cdr1|cdr2|fr3/)
         {
-            $insertions = countInsertions($type_info->{esenntial_residues_count}[$i],
+            $insertions = countInsertions($type_info->{essential_residues_count}[$i],
                                           scalar(@region));
         }
         elsif ($region_names[$i] eq 'cdr3')
