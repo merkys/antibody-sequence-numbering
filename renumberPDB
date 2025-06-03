@@ -28,10 +28,9 @@ my %supportedSchemes = ( 'kabat'  => 1,
 my %supported_fix_mods = ( 'no_fit' => 1,
                            'fit'    => 1 );
 
-my ($numbering_scheme, $pdb_file, $file_type, $output_file, $error_fix_mode);
+my( $numbering_scheme, $pdb_file, $file_type, $error_fix_mode );
 
 GetOptions( "scheme|s=s"  => \$numbering_scheme,
-            "output|o=s"  => \$output_file,
             "input|i=s"   => \$pdb_file,
             "fileType|t=s" => \$file_type) or usage();
 
@@ -76,15 +75,5 @@ for my $model (@HMM_models)
         push @new_numbering, $numbering_ref;
     }
 }
-my $output = renumberPDB($pdb_file, $chains_ref, \@new_numbering);
 
-my $out_fh = *STDOUT;
-if($output_file)
-{
-    open($out_fh, '>', $output_file)
-        or die "Could not open file: $output_file: $!";
-}
-print $out_fh $output;
-close($out_fh) if $output_file;
-
-
+print renumberPDB($pdb_file, $chains_ref, \@new_numbering);
