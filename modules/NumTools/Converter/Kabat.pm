@@ -98,14 +98,12 @@ sub convertToKabat
 
         push @converted, @region;
     }
-    if($if_filter_gaps != 0)
-    {
-        my ($f_converted, $f_numbering) =  filterGaps(\@converted, \@numbering);
+    if( $if_filter_gaps ) {
+        my ($f_converted, $f_numbering) = filterGaps( \@converted, \@numbering );
         @converted = @$f_converted;
         @numbering = @$f_numbering;
     }
     return \@converted, \@numbering;
 }
-
 
 1;

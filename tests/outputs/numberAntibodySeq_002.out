@@ -1,7 +1,3 @@
-Use of uninitialized value $if_filter_gaps in numeric ne (!=) at /home/andrius/src/antibody-sequence-numbering/modules/NumTools/Converter/Chothia.pm line 100, <STDIN> line 4.
-Use of uninitialized value $if_filter_gaps in numeric ne (!=) at /home/andrius/src/antibody-sequence-numbering/modules/NumTools/Converter/Chothia.pm line 100, <STDIN> line 4.
-Use of uninitialized value $if_filter_gaps in numeric ne (!=) at /home/andrius/src/antibody-sequence-numbering/modules/NumTools/Converter/Chothia.pm line 100, <STDIN> line 4.
-Use of uninitialized value $if_filter_gaps in numeric ne (!=) at /home/andrius/src/antibody-sequence-numbering/modules/NumTools/Converter/Chothia.pm line 100, <STDIN> line 4.
 # Domain: IGK
 # Organism: homo_sapiens
 # Sequence: 4QT5:A PDB:4QT5 4QT5
