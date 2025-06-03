@@ -1,4 +1,4 @@
-package IO::PDB::PDBexporter;
+package IO::PDB::Exporter;
 
 use strict;
 use warnings;
