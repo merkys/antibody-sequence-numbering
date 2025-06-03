@@ -53,12 +53,10 @@ if( defined $opt->input ) {
 my @HMM_models;
 {
     local $/ = "\n>";  
-    while(my $record = <$fh>)
-    {
+    while( my $record = <$fh> ) {
         chomp $record;
         $record =~ s/^>//;
-        my $seq_ref = readFasta($record);
-        push @HMM_models, Structures::HMM_model->new($seq_ref);
+        push @HMM_models, Structures::HMM_model->new( readFasta( $record ) );
     }
 
     close($fh) if defined $opt->input;
@@ -67,20 +65,19 @@ my @HMM_models;
 my $output = '';
 for my $model (@HMM_models)
 {
-    for my $seq (@{$model->getSequences()})
+    for my $seq (@{$model->getSequences})
     {
-        my ($numbered_seq, $numbering_ref) = numberSeq($seq, $opt->errfix);
-        if($opt->scheme ne 'imgt')
-        {
+        my( $numbered_seq, $numbering_ref ) = numberSeq($seq, $opt->errfix);
+        if( $opt->scheme ne 'imgt' ) {
            ($numbered_seq, $numbering_ref) = convertImgt($numbered_seq,
-                                                         $seq->getDomain(),
+                                                         $seq->getDomain,
                                                          $opt->scheme,
                                                          $opt->filtergaps);
         }
-        $output .= generateStandartOut($seq->getHeader(), $numbered_seq,
-                                       $seq->getDomain(), $seq->getOrganism(),
-                                       $numbering_ref);
+        print generateStandartOut( $seq->getHeader,
+                                   $numbered_seq,
+                                   $seq->getDomain,
+                                   $seq->getOrganism,
+                                   $numbering_ref );
     }
 }
-
-print $output;
