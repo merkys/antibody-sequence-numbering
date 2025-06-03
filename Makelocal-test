@@ -1,0 +1,196 @@
+BIN_DIR = .
+LIB_DIR = modules 
+
+TEST_DIR = tests/cases
+OUTP_DIR = tests/outputs
+
+INP_FILES  = ${wildcard ${TEST_DIR}/*.inp}
+OPT_FILES  = ${wildcard ${TEST_DIR}/*.opt}
+SH_FILES   = ${wildcard ${TEST_DIR}/*.sh}
+
+INP_DIFFS = ${INP_FILES:${TEST_DIR}/%.inp=${OUTP_DIR}/%.diff}
+INP_OUTS  = ${INP_FILES:${TEST_DIR}/%.inp=${OUTP_DIR}/%.out}
+
+OPT_DIFFS = ${OPT_FILES:${TEST_DIR}/%.opt=${OUTP_DIR}/%.diff}
+OPT_OUTS  = ${OPT_FILES:${TEST_DIR}/%.opt=${OUTP_DIR}/%.out}
+
+SH_DIFFS = ${SH_FILES:${TEST_DIR}/%.sh=${OUTP_DIR}/%.diff}
+SH_OUTS  = ${SH_FILES:${TEST_DIR}/%.sh=${OUTP_DIR}/%.out}
+
+DIFF_FILES = $(sort ${INP_DIFFS} ${OPT_DIFFS} ${SH_DIFFS})
+OUTP_FILES = $(sort ${INP_OUTS} ${OPT_OUTS} ${SH_OUTS})
+
+.PHONY: all clean cleanAll distclean test tests check out outputs display
+
+#------------------------------------------------------------------------------
+
+test check: ${DIFF_FILES}
+
+${DIFF_FILES}: 
+
+out outputs: ${OUTP_FILES}
+
+#------------------------------------------------------------------------------
+
+# Dependencies for the test files:
+
+include .depend ## .shdepend
+
+.depend: ${INP_OUTS} ${OPT_OUTS} ${SH_OUTS}
+	for i in $^; do \
+		echo "$$i: $$(echo $$i | sed -e 's/_[0-9]*\..*$$//' \
+			| sed 's,${OUTP_DIR},${BIN_DIR},')"; \
+	done | grep -v '\.pm' | grep -v '\.js' | grep -v 'out$$' > $@
+
+## .shdepend: $(SH_FILES)
+## 	BIN_DIR=$(BIN_DIR) LIB_DIR=$(LIB_DIR) mkcomdepend $^ > $@
+
+#------------------------------------------------------------------------------
+
+# Define common test frame components:
+
+define source_environment
+test -f $(dir $<)/$*.env && . $(dir $<)/$*.env
+endef
+
+define can_run_test
+[ ! -e ${TEST_DIR}/$*.chk ] || ${TEST_DIR}/$*.chk
+endef
+
+define diff_outputs
+diff ${OUTP_DIR}/$*.out -
+endef
+
+define report_differences
+if [ $$? = 0 ]; then echo "OK"; else echo "FAILED:"; cat $@; fi
+endef
+
+# Filters for the test outputs:
+
+define filter_perl_messages
+cat
+endef
+
+# Rules to run script-specific tests:
+
+${OUTP_DIR}/%.diff: ${TEST_DIR}/%.inp ${TEST_DIR}/%.opt ${OUTP_DIR}/%.out
+	-@printf "%-50s " "$<:" ; \
+	if ${can_run_test}; then \
+		${source_environment} ; \
+		${BIN_DIR}/$(shell echo $* | sed -e 's/_[0-9]*$$//') \
+		    $(shell grep -v '^#' ${word 2, $^}) \
+	    	< $< 2>&1 \
+		| ${filter_perl_messages} \
+		| ${diff_outputs} > $@ ; \
+		${report_differences} ; \
+	else \
+		touch $@; \
+	fi
+
+${OUTP_DIR}/%.diff: ${TEST_DIR}/%.inp ${OUTP_DIR}/%.out
+	-@printf "%-50s " "$<:" ; \
+	if ${can_run_test}; then \
+		${source_environment} ; \
+		${BIN_DIR}/$(shell echo $* | sed -e 's/_[0-9]*$$//') \
+		    < $< 2>&1 \
+		| ${filter_perl_messages} \
+		| ${diff_outputs} > $@ ; \
+		${report_differences} ; \
+	else \
+		touch $@; \
+	fi
+
+${OUTP_DIR}/%.diff: ${TEST_DIR}/%.opt ${OUTP_DIR}/%.out
+	-@printf "%-50s " "$<:" ; \
+	if ${can_run_test}; then \
+		${source_environment} ; \
+		${BIN_DIR}/$(shell echo $* | sed -e 's/_[0-9]*$$//') \
+		    $(shell grep -v '^#' $<) \
+		< /dev/null 2>&1 \
+		| ${filter_perl_messages} \
+		| ${diff_outputs} > $@ ; \
+		${report_differences} ; \
+	else \
+		touch $@; \
+	fi
+
+${OUTP_DIR}/%.diff: ${TEST_DIR}/%.sh ${OUTP_DIR}/%.out
+	-@printf "%-50s " "$<:" ; \
+	if ${can_run_test}; then \
+		${source_environment} ; \
+		$< 2>&1 \
+		| ${filter_perl_messages} \
+		| ${diff_outputs} > $@ ; \
+		${report_differences} ; \
+	else \
+		touch $@; \
+	fi
+
+# Rules to generate sample test outputs:
+
+${OUTP_DIR}/%.out: ${TEST_DIR}/%.inp ${TEST_DIR}/%.opt
+	-@test -f $@ || echo "$@:"
+	-@${source_environment}; \
+	test -f $@ || \
+	${BIN_DIR}/$(shell echo $* | sed -e 's/_[0-9]*$$//') \
+	    $(shell grep -v '^#' ${word 2, $^}) \
+	    < $< \
+	2>&1 \
+	| ${filter_perl_messages} \
+	| tee $@
+	-@touch $@
+
+${OUTP_DIR}/%.out: ${TEST_DIR}/%.inp
+	-@test -f $@ || echo "$@:"
+	-@${source_environment}; \
+	test -f $@ || \
+	${BIN_DIR}/$(shell echo $* | sed -e 's/_[0-9]*$$//') \
+	    < $< \
+	2>&1 \
+	| ${filter_perl_messages} \
+	| tee $@
+	-@touch $@
+
+${OUTP_DIR}/%.out: ${TEST_DIR}/%.opt
+	-@test -f $@ || echo "$@:"
+	-@${source_environment}; \
+	test -f $@ || \
+	${BIN_DIR}/$(shell echo $* | sed -e 's/_[0-9]*$$//') \
+	    $(shell grep -v '^#' $<) \
+	2>&1 \
+	< /dev/null \
+	| ${filter_perl_messages} \
+	| tee $@
+	-@touch $@
+
+${OUTP_DIR}/%.out: ${TEST_DIR}/%.sh
+	-@test -f $@ || echo "$@:"
+	-@${source_environment}; \
+	test -f $@ || \
+	$< 2>&1 \
+	| ${filter_perl_messages} \
+	| tee $@
+	-@touch $@
+
+#------------------------------------------------------------------------------
+
+.PHONY: failed listdiff
+
+failed listdiff: ## test
+	@-find ${OUTP_DIR} -type f -name '*.diff' -size +0 | sort -u
+
+#------------------------------------------------------------------------------
+
+.PHONY: clean-test distclean-test
+
+clean-test:
+	rm -f ${DIFF_FILES}
+
+distclean-test: clean-test
+	rm -f .depend .shdepend
+	rm -f ${PERL_MODULES}
+	rm -f ${PERL_TOOLS}
+
+clean: clean-test
+
+distclean: distclean-test

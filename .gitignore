@@ -20,3 +20,4 @@ investigation/raw_data/mus_musculus/id/*
 *.imgt
 *.kabat
 *.chothia
+.depend
