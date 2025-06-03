@@ -5,6 +5,7 @@ use warnings;
 
 use Getopt::Long::Descriptive;
 use FindBin;
+use List::Util qw( none );
 
 use lib "$FindBin::Bin/modules";
 
@@ -14,12 +15,8 @@ use Structures::HMM_model;
 use NumTools::IMGT qw(numberSeq);
 use NumTools::Converter qw(convertImgt);
 
-my %supportedSchemes = ( 'imgt'   => 1,
-                         'kabat'  => 1,
-                         'chothia'=> 1 );
-
-my %supported_fix_mods = ( 'no_fit' => 1,
-                           'fit'    => 1 );
+my @supportedSchemes = qw( imgt kabat chothia );
+my @supported_fix_mods = qw( no_fit fit );
 
 my( $opt, $usage ) = describe_options(
     'Antibody sequence numbering program',
@@ -35,14 +32,16 @@ if( $opt->help ) {
     exit;
 }
 
-if( !$supportedSchemes{lc($opt->scheme)} ) {
+if( none { $_ eq $opt->scheme } @supportedSchemes ) {
+    local $" = ', ';
     die "scheme '" . $opt->scheme . "' is not supported, supported schemes: " .
-        join( ', ', sort keys %supportedSchemes ) . "\n";
+        "@supportedSchemes\n";
 }
 
-if( !$supported_fix_mods{lc($opt->errfix)} ) {
+if( none { $_ eq $opt->errfix } @supported_fix_mods ) {
+    local $" = ', ';
     die "fix mode '" . $opt->errfix . "' is not supported, supported modes: " .
-        join( ', ', sort keys %supported_fix_mods ) . "\n";
+        "@supported_fix_mods\n";
 }
 
 my $fh = *STDIN;
@@ -58,7 +57,7 @@ my @HMM_models;
         push @HMM_models, Structures::HMM_model->new( readFasta( $record ) );
     }
 
-    close($fh) if defined $opt->input;
+    close $fh if defined $opt->input;
 }
 
 my $output = '';
