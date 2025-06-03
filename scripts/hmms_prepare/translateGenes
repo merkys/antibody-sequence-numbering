@@ -34,7 +34,7 @@ close($fh);
 open($fh, "<", $translateInfoFile)
 	or die "Could not open file $translateInfoFile";
 
-my $transaltedSeq;
+my $translatedSeq;
 while(my $line = <$fh>)
 {
 	my @line = split(/\s/, $line);
@@ -45,9 +45,9 @@ while(my $line = <$fh>)
 		for my $key (sort keys %seqHash)
 		{
 			print "$key\n";
-			$transaltedSeq =  Translate::translate_seq($seqHash{$key}, $frame);
-			$transaltedSeq =~ s/\?//g;
-			print $transaltedSeq . "\n";
+			$translatedSeq =  Translate::translate_seq($seqHash{$key}, $frame);
+			$translatedSeq =~ s/\?//g;
+			print $translatedSeq . "\n";
 		}
 	}
 	else
@@ -55,9 +55,9 @@ while(my $line = <$fh>)
 		for my $seq (@line)
 		{
 			print ">$seq\n";
-			$transaltedSeq =  Translate::translate_seq($seqHash{">$seq"}, $frame);
-			$transaltedSeq =~ s/\?//g;
-			print $transaltedSeq . "\n";
+			$translatedSeq =  Translate::translate_seq($seqHash{">$seq"}, $frame);
+			$translatedSeq =~ s/\?//g;
+			print $translatedSeq . "\n";
 		}
 	}
 }
