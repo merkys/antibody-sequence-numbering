@@ -1,4 +1,4 @@
-package IMGT_Utils::Alignment;
+package NumTools::IMGT_Utils::Alignment;
 use strict;
 use warnings;
 

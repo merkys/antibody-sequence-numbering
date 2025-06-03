@@ -1,4 +1,4 @@
-package IMGT_Utils::Numbering;
+package NumTools::IMGT_Utils::Numbering;
 
 use strict;
 use warnings;

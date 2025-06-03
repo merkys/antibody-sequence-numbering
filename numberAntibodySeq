@@ -6,27 +6,14 @@ use warnings;
 use Cwd;
 use Getopt::Long::Descriptive;
 use FindBin;
-use File::Spec;
 
-BEGIN {
-    my @dirs = grep { -d $_ } glob(File::Spec->catdir($FindBin::Bin, 'modules', '*'));
-    unshift @INC, "$FindBin::Bin/modules";
-    for my $dir (@dirs)
-    {
-        unshift @INC, $dir;
-    }
-}
+use lib "$FindBin::Bin/modules";
 
 use IO::FastaParser qw(readFasta);
 use IO::DataPrinter qw(generateStandartOut);
 use Structures::HMM_model;
 use NumTools::IMGT qw(numberSeq);
 use NumTools::Converter qw(convertImgt);
-
-sub usage
-{
-    die "usage\n";
-}
 
 my %supportedSchemes = ( 'imgt'   => 1,
                          'kabat'  => 1,

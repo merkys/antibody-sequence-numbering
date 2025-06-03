@@ -1,9 +1,9 @@
-package Converter::Kabat;
+package NumTools::Converter::Kabat;
 
 use strict;
 use warnings;
 use Exporter 'import';
-use Converter::Utils qw(:ALL);
+use NumTools::Converter::Utils qw(:ALL);
 
 our @EXPORT_OK = qw(convertToKabat);
 our %EXPORT_TAGS = ( ALL => \@EXPORT_OK );

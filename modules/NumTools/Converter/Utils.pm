@@ -1,4 +1,4 @@
-package Converter::Utils;
+package NumTools::Converter::Utils;
 
 use strict;
 use warnings;

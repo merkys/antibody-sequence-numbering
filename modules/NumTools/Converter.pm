@@ -2,8 +2,8 @@ package NumTools::Converter;
 use strict;
 use warnings;
 use Exporter 'import';
-use Converter::Kabat qw(convertToKabat);
-use Converter::Chothia qw(convertToChothia);
+use NumTools::Converter::Kabat qw(convertToKabat);
+use NumTools::Converter::Chothia qw(convertToChothia);
 
 our @EXPORT_OK = qw(convertImgt);
 

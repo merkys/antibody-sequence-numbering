@@ -1,4 +1,4 @@
-package IMGT_Utils::Cdr;
+package NumTools::IMGT_Utils::Cdr;
 
 use strict;
 use warnings;

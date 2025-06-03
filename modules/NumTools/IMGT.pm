@@ -5,9 +5,9 @@ use warnings;
 use Exporter 'import';
 use POSIX qw(ceil);
 use List::Util qw(sum);
-use IMGT_Utils::Alignment qw(fixAlignment fixLowContextZones detectNonTipicalInsertions);
-use IMGT_Utils::Cdr qw(fixCdrS);
-use IMGT_Utils::Numbering qw(formNumbering);
+use NumTools::IMGT_Utils::Alignment qw(fixAlignment fixLowContextZones detectNonTipicalInsertions);
+use NumTools::IMGT_Utils::Cdr qw(fixCdrS);
+use NumTools::IMGT_Utils::Numbering qw(formNumbering);
 
 our @EXPORT_OK = qw(numberSeq);
 our %EXPORT_TAGS = ( ALL => \@EXPORT_OK );

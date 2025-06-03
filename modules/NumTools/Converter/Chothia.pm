@@ -1,10 +1,10 @@
-package Converter::Chothia;
+package NumTools::Converter::Chothia;
 
 use strict;
 use warnings;
 use Exporter 'import';
 
-use Converter::Utils qw(convertRegion countInsertions countInsertionsCdr3 formNumbering filterGaps);
+use NumTools::Converter::Utils qw(convertRegion countInsertions countInsertionsCdr3 formNumbering filterGaps);
 
 our @EXPORT_OK   = qw(convertToChothia);
 our %EXPORT_TAGS = ( ALL => \@EXPORT_OK );
