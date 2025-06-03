@@ -62,15 +62,13 @@ for( my $i = 0; $i < (@$sequences_ref); $i++ )
 
 my $is_filter_gaps = 1;
 my @new_numbering;
-for my $model (@HMM_models)
-{
-    for my $seq (@{$model->getSequences()})
-    {
-        my ($numbered_seq, $numbering_ref) = numberSeq($seq, $error_fix_mode);
-           ($numbered_seq, $numbering_ref) = convertImgt($numbered_seq,
-                                                        $seq->getDomain(),
-                                                        $numbering_scheme,
-                                                        $is_filter_gaps);
+for my $model (@HMM_models) {
+    for my $seq ($model->getSequences) {
+        my ($numbered_seq, $numbering_ref) = numberSeq( $seq, $error_fix_mode );
+           ($numbered_seq, $numbering_ref) = convertImgt( $numbered_seq,
+                                                          $seq->getDomain,
+                                                          $numbering_scheme,
+                                                          $is_filter_gaps );
         push @new_numbering, $numbering_ref;
     }
 }

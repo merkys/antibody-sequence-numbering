@@ -62,7 +62,7 @@ my @HMM_models;
 
 my $output = '';
 for my $model (@HMM_models) {
-    for my $seq (@{$model->getSequences}) {
+    for my $seq ($model->getSequences) {
         my( $numbered_seq, $numbering_ref ) = numberSeq( $seq, $opt->errfix );
         if( $opt->scheme ne 'imgt' ) {
            ($numbered_seq, $numbering_ref) = convertImgt( $numbered_seq,

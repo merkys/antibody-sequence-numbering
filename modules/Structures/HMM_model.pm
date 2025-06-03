@@ -50,7 +50,7 @@ sub new
 sub getSequences
 {
     my ($self) = @_;
-    return $self->{sequences}
+    return @{$self->{sequences}};
 }
 
 sub writeFastaToTMP
@@ -60,7 +60,7 @@ sub writeFastaToTMP
     print $tmp_fh ">" . $header . "\n";
     print $tmp_fh join('', @$seq_ref), "\n";
     close($tmp_fh);
-    return $tmp_fasta_file
+    return $tmp_fasta_file;
 }
 
 sub runHmmScan
@@ -82,7 +82,7 @@ sub runHmmScan
     my @domain_hits = grep { !(/^#/) } <$tblout_fh>;
     
     close($tblout_fh);
-    return \@domain_hits
+    return \@domain_hits;
 }
 
 sub parseDomainHits
@@ -103,7 +103,7 @@ sub parseDomainHits
                      $field[18],   # [6] ali end
                      $field[21]];  # [7] Accuracy
     }
-    return \@hits
+    return \@hits;
 }
 
 sub findBestOrganism
@@ -112,7 +112,7 @@ sub findBestOrganism
     die "No hits" unless @$domain_hits;
     my $best = reduce {($a->[4] < $b->[4]) ? $b : $a} @$domain_hits;
 
-    return $best->[0] 
+    return $best->[0];
 }
 
 sub detectSequences
