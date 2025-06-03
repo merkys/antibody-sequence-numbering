@@ -93,14 +93,14 @@ sub parseDomainHits
     for my $line (@hmm_scan_out) {
         my @field = split /\s+/, $line;
         my( $org, $dom ) = $field[0] =~ /^(\S+)_(\S+)$/;
-        push @hits, [$org,         # [0] organism
-                     $dom,         # [1] domain
-                     $field[6],    # [2] Seq E-value
-                     $field[8],    # [3] Seq bias
-                     $field[13],   # [4] Domain Score
-                     $field[17],   # [5] ali start
-                     $field[18],   # [6] ali end
-                     $field[21]];  # [7] Accuracy
+        push @hits, { organism => $org,         # [0] organism
+                      domain   => $dom,         # [1] domain
+                      evalue   => $field[6],    # [2] Seq E-value
+                      bias     => $field[8],    # [3] Seq bias
+                      score    => $field[13],   # [4] Domain Score
+                      start    => $field[17],   # [5] ali start
+                      end      => $field[18],   # [6] ali end
+                      accuracy => $field[21] }; # [7] Accuracy
     }
     return @hits;
 }
@@ -109,24 +109,24 @@ sub findBestOrganism
 {
     my @domain_hits = @_;
     die "No hits" unless @domain_hits;
-    my $best = reduce {($a->[4] < $b->[4]) ? $b : $a} @domain_hits;
+    my $best = reduce { $a->{score} < $b->{score} ? $b : $a } @domain_hits;
 
-    return $best->[0];
+    return $best->{organism};
 }
 
 sub detectSequences
 {
     my ($domain_hits, $target_organism) = @_;
     
-    my @hits = grep { $_->[0] eq $target_organism } @$domain_hits;
+    my @hits = grep { $_->{organism} eq $target_organism } @$domain_hits;
     return [] unless @hits;
     
     
-    @hits = sort { $a->[5] <=> $b->[5] } @hits;
+    @hits = sort { $a->{start} <=> $b->{start} } @hits;
     my @segments;
     for my $hit (@hits)
     {
-        my ($f, $t) = @$hit[5,6];  # ali_from, ali_to
+        my ($f, $t) = ($hit->{start}, $hit->{end});  # ali_from, ali_to
         if (!@segments || $f > $segments[-1]{end})
         {
             push @segments, { start => $f, end => $t, hits => [ $hit ] };
@@ -143,24 +143,24 @@ sub detectSequences
     {
         my @h = @{ $seg->{hits} };
         
-        if (my ($heavy) = grep { $_->[1] eq 'IGH' } @h)
+        if (my ($heavy) = grep { $_->{domain} eq 'IGH' } @h)
         {
-            push @sequences, { domain  => 'IGH',
+            push @sequences, { domain => 'IGH',
                                start => $seg->{start},
                                end   => $seg->{end},
-                               bias  => $heavy ->[3],
-                               score => $heavy->[4]};
+                               bias  => $heavy->{bias},
+                               score => $heavy->{score}};
         }
         
-        my @light = grep { $_->[1] eq 'IGK' || $_->[1] eq 'IGL' } @h;
+        my @light = grep { $_->{domain} eq 'IGK' || $_->{domain} eq 'IGL' } @h;
         if (@light)
         {
-            my ($best) = sort { $b->[4] <=> $a->[4] } @light;
-            push @sequences, { domain  => $best->[1],
+            my ($best) = sort { $b->{score} <=> $a->{score} } @light;
+            push @sequences, { domain  => $best->{domain},
                                start => $seg->{start},
                                end   => $seg->{end},
-                               bias  => $best ->[3],
-                               score => $best->[4]};
+                               bias  => $best->{bias},
+                               score => $best->{score}};
         }
     }
     
