@@ -12,9 +12,9 @@ sub new
     
     my $tmp_fasta = writeFastaToTMP($seq_ref->{id}, $seq_ref->{seq});
     my $hmm_scan_out = runHmmScan($tmp_fasta);
-    my $parsed_data = parseDomainHits($hmm_scan_out);
-    my $target_organism = findBestOrganism($parsed_data);
-    my $sequences = detectSequences($parsed_data, $target_organism);
+    my @parsed_data = parseDomainHits(@$hmm_scan_out);
+    my $target_organism = findBestOrganism(@parsed_data);
+    my $sequences = detectSequences(\@parsed_data, $target_organism);
     my @seq_objects;
     for my $seq (@$sequences)
     {
@@ -87,13 +87,12 @@ sub runHmmScan
 
 sub parseDomainHits
 {
-    my ($hmm_scan_out) = @_;
+    my @hmm_scan_out = @_;
     my @hits;
 
-    for my $line (@$hmm_scan_out)
-    {
+    for my $line (@hmm_scan_out) {
         my @field = split /\s+/, $line;
-        my ($org, $dom) = $field[0] =~ /^(\S+)_(\S+)$/;
+        my( $org, $dom ) = $field[0] =~ /^(\S+)_(\S+)$/;
         push @hits, [$org,         # [0] organism
                      $dom,         # [1] domain
                      $field[6],    # [2] Seq E-value
@@ -103,14 +102,14 @@ sub parseDomainHits
                      $field[18],   # [6] ali end
                      $field[21]];  # [7] Accuracy
     }
-    return \@hits;
+    return @hits;
 }
 
 sub findBestOrganism
 {
-    my ($domain_hits) = @_;
-    die "No hits" unless @$domain_hits;
-    my $best = reduce {($a->[4] < $b->[4]) ? $b : $a} @$domain_hits;
+    my @domain_hits = @_;
+    die "No hits" unless @domain_hits;
+    my $best = reduce {($a->[4] < $b->[4]) ? $b : $a} @domain_hits;
 
     return $best->[0];
 }
