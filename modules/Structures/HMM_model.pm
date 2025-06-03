@@ -2,15 +2,16 @@ package Structures::HMM_model;
 
 use strict;
 use warnings;
-use Structures::Seq;
+
 use File::Temp qw(tempfile);
 use List::Util qw(reduce);
+use Structures::Seq;
 
 sub new
 {
     my( $class, $seq_ref ) = @_;
     
-    my $tmp_fasta = writeFastaToTMP($seq_ref->{id}, $seq_ref->{seq});
+    my $tmp_fasta = writeFastaToTMP( $seq_ref->{id}, $seq_ref->{seq} );
     my @hmm_scan_out = runHmmScan($tmp_fasta);
     my @parsed_data = parseDomainHits(@hmm_scan_out);
     my $target_organism = findBestOrganism(@parsed_data);
@@ -18,7 +19,7 @@ sub new
     my @seq_objects;
     for my $seq (@sequences) {
         my $from = $seq->{start} - 1;
-        my $to = $seq ->{end} - 1;
+        my $to   = $seq->{end}   - 1;
         my @sub_seq = @{ $seq_ref->{seq} }[ $from .. $to ];
         my $sub_seq_ref = { header => $seq_ref->{header},
                             seq    => \@sub_seq,
@@ -39,8 +40,10 @@ sub new
                      $class;
                  
     for my $seq ($self->getSequences) {
-        $seq->setAlignedSeq(alignToDomain($seq->getId, $seq->getSeq,
-                                          $seq->getDomain, $seq->getOrganism));
+        $seq->setAlignedSeq(alignToDomain( $seq->getId,
+                                           $seq->getSeq,
+                                           $seq->getDomain,
+                                           $seq->getOrganism ));
     }
     return $self;
 }
@@ -117,20 +120,19 @@ sub detectSequences
 {
     my ($domain_hits, $target_organism) = @_;
     
-    my @hits = grep { $_->{organism} eq $target_organism } @$domain_hits;
+    my @hits = sort { $a->{start} <=> $b->{start} }
+               grep { $_->{organism} eq $target_organism } @$domain_hits;
     return () unless @hits;
 
-    @hits = sort { $a->{start} <=> $b->{start} } @hits;
     my @segments;
     for my $hit (@hits) {
-        my ($f, $t) = ($hit->{start}, $hit->{end}); # ali_from, ali_to
-        if (!@segments || $f > $segments[-1]{end})
+        if (!@segments || $hit->{start} > $segments[-1]{end})
         {
-            push @segments, { start => $f, end => $t, hits => [ $hit ] };
+            push @segments, { start => $hit->{start}, end => $hit->{end}, hits => [ $hit ] };
         }
         else
         {
-            $segments[-1]{end} = $t if $t > $segments[-1]{end};
+            $segments[-1]{end} = $hit->{end} if $hit->{end} > $segments[-1]{end};
             push @{$segments[-1]{hits}}, $hit;
         }
     }
