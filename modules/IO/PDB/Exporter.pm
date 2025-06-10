@@ -16,7 +16,7 @@ sub renumberPDB
         or die "Could not open $pdb_file: $!";
     
     my $chain_vector_index = 0;
-    my $numbering_vector_inddex = 0;
+    my $numbering_vector_index = 0;
     
     my $output ='';
     my $current_chain = $chains_ref->[$chain_vector_index];
@@ -40,10 +40,10 @@ sub renumberPDB
             {
                 $current_res_index = $res_index;
                 $current_ins = $res_ins;
-                if($numbering_ref->[$chain_vector_index]->[$numbering_vector_inddex])
+                if($numbering_ref->[$chain_vector_index]->[$numbering_vector_index])
                 {
-                    ($numbering, $ins) = _parse_numbering($numbering_ref->[$chain_vector_index]->[$numbering_vector_inddex]);
-                    $numbering_vector_inddex++;
+                    ($numbering, $ins) = _parse_numbering($numbering_ref->[$chain_vector_index]->[$numbering_vector_index]);
+                    $numbering_vector_index++;
                 }
                 else
                 {
@@ -61,7 +61,7 @@ sub renumberPDB
         else
         {
             $chain_vector_index++;
-            $numbering_vector_inddex = 0;
+            $numbering_vector_index = 0;
             $current_chain = $chain_id;
             $if_numbering_end = 0;
         }
