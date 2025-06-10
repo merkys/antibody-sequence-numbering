@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use File::Temp qw(tempfile);
+use FindBin;
 use List::Util qw(reduce);
 use Structures::Seq;
 
@@ -73,7 +74,7 @@ sub runHmmScan
     close $fh;
     
     my $params = "--domT 80 --domtblout $dom_tblout --noali";
-    my $hmm_file = 'hmms/IG_combined.hmm';
+    my $hmm_file = $FindBin::Bin . '/hmms/IG_combined.hmm';
     my $command = "hmmscan $params $hmm_file $tmp_fasta > /dev/null 2>&1";
     qx($command);
     
@@ -169,7 +170,7 @@ sub alignToDomain
     
     my $seq_file = writeFastaToTMP($seq_id, $seq_array_ref);
     my $params = "--outformat afa --trim";
-    my $hmm = "hmms/$organism/$domain.hmm";
+    my $hmm = "$FindBin::Bin/hmms/$organism/$domain.hmm";
     my $command = "hmmalign $params $hmm $seq_file";
     
     local $/ = "\n";
