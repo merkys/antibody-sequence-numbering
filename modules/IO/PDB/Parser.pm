@@ -4,6 +4,8 @@ use strict;
 use warnings;
 
 use Exporter 'import';
+use IO::PDB::Atom;
+use List::Util qw( uniqstr );
 
 our @EXPORT_OK = qw(readPDB readMMCIF);
 
@@ -18,41 +20,30 @@ sub readPDB
     my ($pdb_file) = @_;
     open my $fh, '<', $pdb_file
         or die "Could not open file: $pdb_file: $!";
-    
-    my @chains;
-    my @sequences;
-    
-    my $current_chain;
-    my $current_res_index = 0;
-    my $current_ins = "";
-    my @current_sequence;
-    while (<$fh>)
-    {
-        next unless /^ATOM/;
-        my ($new_chain, $new_res_index, $new_ins) = unpack("x21 A1 A4 A1", $_);
-        $new_res_index += 0;
-        $current_chain = $new_chain if not $current_chain;
-        if($current_chain ne $new_chain)
-        {
-            push @chains, $current_chain;
-            push @sequences, [ @current_sequence ];
-            $current_chain = $new_chain;
-            @current_sequence = ();
-        }
-        
-        if( $current_res_index != $new_res_index or $current_ins ne $new_ins)
-        {
-            push @current_sequence, $aa3_to_1{ substr($_, 17, 3) } || 'X';
-            $current_res_index = $new_res_index;
-            $current_ins = $new_ins;
-        }
-    }
-    if (defined $current_chain)
-    {
-        push @chains, $current_chain;
-        push @sequences, \@current_sequence;
+
+    my @atoms;
+    while (<$fh>) {
+        push @atoms, IO::PDB::Atom->new( $_ ) if /^ATOM/;
     }
     close $fh;
+
+    my @first_of_residue;
+    for (@atoms) {
+        next if @first_of_residue &&
+                $first_of_residue[-1]->chain eq $_->chain &&
+                $first_of_residue[-1]->residue_number == $_->residue_number &&
+                $first_of_residue[-1]->insertion_code eq $_->insertion_code;
+        push @first_of_residue, $_;
+    }
+
+    my @chains = uniqstr map { $_->chain } @atoms;
+    my @sequences;
+    for my $chain (@chains) {
+        push @sequences, [ map  { $aa3_to_1{$_->residue_name} }
+                           grep { $_->chain eq $chain }
+                                @first_of_residue ];
+    }
+
     return \@chains, \@sequences;
 }
 
