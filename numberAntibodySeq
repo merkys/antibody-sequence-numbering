@@ -17,6 +17,7 @@ use NumTools::Converter qw(convertImgt);
 
 my @supportedSchemes = qw( imgt kabat chothia );
 my @supported_fix_mods = qw( no_fit fit );
+my @supported_organisms = qw( human mouse );
 
 my( $opt, $usage ) = describe_options(
     'Antibody sequence numbering program',
@@ -24,6 +25,7 @@ my( $opt, $usage ) = describe_options(
     [ 'input|i=s', 'input file' ],
     [ 'errFix|ef=s', 'error fixing mode', { default => 'fit' } ],
     [ 'filterGaps|fG=s', 'filter gaps?' ],
+    [ 'organism=s', 'target organism' ],
     [ 'help|h', 'print usage message and exit', { shortcircuit => 1 } ],
 );
 
@@ -44,6 +46,14 @@ if( none { $_ eq $opt->errfix } @supported_fix_mods ) {
         "@supported_fix_mods\n";
 }
 
+if ( $opt->organism ) {
+    if( none { $_ eq $opt->organism } @supported_organisms ) {
+        local $" = ', ';
+        die "organism '" . $opt->organism . "' is not supported, supported organisms: " .
+            "@supported_organisms\n";
+    }
+}
+
 my $fh = *STDIN;
 if( defined $opt->input ) {
     open $fh, '<', $opt->input or die "Could not open file: " . $opt->input;
@@ -54,7 +64,7 @@ my @HMM_models;
     while( my $record = <$fh> ) {
         chomp $record;
         $record =~ s/^>//;
-        push @HMM_models, Structures::HMM_model->new( readFasta( $record ) );
+        push @HMM_models, Structures::HMM_model->new( readFasta( $record ), $opt->organism );
     }
 
     close $fh if defined $opt->input;

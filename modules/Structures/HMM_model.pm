@@ -7,14 +7,20 @@ use File::Temp qw(tempfile);
 use List::Util qw(reduce);
 use Structures::Seq;
 
+my %organism_translation = ( 'human' => 'homo_sapiens',
+                             'mouse' => 'mus_muluscus' );
+
+
 sub new
 {
-    my( $class, $seq_ref ) = @_;
+    my( $class, $seq_ref, $target_organism) = @_;
     
     my $tmp_fasta = writeFastaToTMP( $seq_ref->{id}, $seq_ref->{seq} );
     my @hmm_scan_out = runHmmScan($tmp_fasta);
     my @parsed_data = parseDomainHits(@hmm_scan_out);
-    my $target_organism = findBestOrganism(@parsed_data);
+    $target_organism = defined $target_organism
+        ? ( $organism_translation{ lc $target_organism } // findBestOrganism( @parsed_data ) )
+        : findBestOrganism(@parsed_data);
     my @sequences = detectSequences(\@parsed_data, $target_organism);
     my @seq_objects;
     for my $seq (@sequences) {
@@ -27,7 +33,7 @@ sub new
                             
         my $domain_ref = { domain   => $seq->{domain},
                            organism => $target_organism,
-                           score	=> $seq->{score},
+                           score    => $seq->{score},
                            bias	    => $seq->{bias}};
         
         push @seq_objects, Structures::Seq->new( $sub_seq_ref, $domain_ref );
@@ -100,8 +106,8 @@ sub parseDomainHits
                       evalue   => $field[6],    # [2] Seq E-value
                       bias     => $field[8],    # [3] Seq bias
                       score    => $field[13],   # [4] Domain Score
-                      start    => $field[17],   # [5] ali start
-                      end      => $field[18],   # [6] ali end
+                      start    => $field[19],   # [5] env start
+                      end      => $field[20],   # [6] env end
                       accuracy => $field[21] }; # [7] Accuracy
     }
     return @hits;
