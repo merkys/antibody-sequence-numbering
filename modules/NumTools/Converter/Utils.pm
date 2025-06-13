@@ -3,13 +3,14 @@ package NumTools::Converter::Utils;
 use strict;
 use warnings;
 
+use List::Util qw(sum max);
 use Exporter 'import';
-our @EXPORT_OK = qw(formNumbering countInsertions countInsertionsCdr3 convertRegion filterGaps);
+our @EXPORT_OK = qw(formNumbering countInsertions countInsertionsCdr3 convertRegion filterGaps formNumberingCdr3 countInsertionOffset);
 our %EXPORT_TAGS = ( ALL => \@EXPORT_OK );
 
 use constant {INSERTIONLESS_END => 2};  #INSERTIONLESS_END source: https://www.imgt.org/IMGTScientificChart/Numbering/CDR3-IMGTgaps.html
 
-sub formNumbering
+sub formNumberingCdr3
 {
     my ($numbering_start, $numbering_end,
         $insertions_count, $insertions_position) = @_;
@@ -36,10 +37,49 @@ sub formNumbering
     return @numbering;
 }
 
+sub formNumbering
+{
+    my ($numbering_start, $numbering_end,
+        $insertion_count, $insertions_position,
+        $ins_vector) = @_;
+        
+    my @numbering;
+    my $num = $numbering_start - 1;
+    my $ins_code = 65;
+    for my $insertion (@$ins_vector)
+    {
+        if(!$insertion) # 1 - insertion, 0 - non-insertion
+        {
+            if($num == $insertions_position and $insertion_count)
+            {
+                my $scheme_insetion_letter = lc(chr($ins_code));
+                push @numbering, $num . " " . $scheme_insetion_letter;
+                $ins_code += 1;
+                $insertion_count -= 1;
+            }
+            else
+            {
+                $num += 1;
+                push @numbering, $num;
+                $ins_code = 65;
+            }
+        }
+        else
+        {
+            my $unusual_insertion_letter = lc(chr($ins_code));
+            push @numbering, $num . " " . $unusual_insertion_letter;
+            $ins_code += 1;
+        }
+    }
+    return @numbering;
+}
+
+
 sub countInsertions
 {
-    my ($max_esential_resiudes, $current_region_length) = @_;
-    return $current_region_length - $max_esential_resiudes
+    my ($max_esential_resiudes, $current_region_length,
+                                $aditional_ins_count) = @_;
+    return max(0, $current_region_length - $max_esential_resiudes - $aditional_ins_count)
 }
 
 sub countInsertionsCdr3
@@ -94,6 +134,20 @@ sub filterGaps
     }
 
     return (\@filtered_seq, \@filtered_num);
+}
+
+sub countInsertionOffset
+{
+    my ($ins_vector, $start, $end) = @_;
+
+    my $offset = 0;
+    while (1)
+    {
+        my $ins_count = sum @{ $ins_vector }[ $start .. $end + $offset ];
+        last if $ins_count == $offset;
+        $offset = $ins_count;
+    }
+    return $offset;
 }
 
 1;

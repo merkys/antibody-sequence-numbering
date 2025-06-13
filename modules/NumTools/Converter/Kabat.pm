@@ -26,30 +26,30 @@ our %EXPORT_TAGS = ( ALL => \@EXPORT_OK );
 
 my %KabatTypes = (                  #FR1   CDR1  FR2    CDR2   FR3    CDR3   FR4      Information                   Source of information
   IGL => {
-    region_starts                => [ 0,     26, 40,    55,    65,    104,   -11   ], # Region Start Indices,       IMGT
-    region_ends                  => [ 25,    39, 54,    64,    103,   'END', -1    ], # Region END   Indices,       IMGT
+    region_starts                => [ 0,     26, 40,    55,    65,    104,   117   ], # Region Start Indices,       IMGT
+    region_ends                  => [ 25,    39, 54,    64,    103,   116,   127    ], # Region END   Indices,       IMGT
     numbering_start              => [ 1,     27, 35,    50,    53,    89,    98    ], # Region Start Indices,       KABAT
     numbering_end                => [ 26,    34, 49,    52,    88,    97,    107   ], # Region END   Indices,       KABAT
-    insertion_positions          => [ undef, 27, undef, undef, undef, 95,    106   ], # Region Insertions positions,KABAT
-    essential_residues_count     => [ 26,    8,   15,    3,     36,    6,    10    ],
+    insertion_positions          => [ 0,     27,  0,     0,     0,    95,    106   ], # Region Insertions positions,KABAT
+    esenntial_residues_count     => [ 26,    8,   15,    3,     36,    9,    10    ],
     res_till_kabat_insetions     => 7,
   },
   IGK => {                           #FR1   CDR1  FR2    CDR2   FR3    CDR3   FR4
-    region_starts                => [ 0,     26,  40,    55,    65,    104,   -11   ],
-    region_ends                  => [ 25,    39,  54,    64,    103,   'END', -1    ],
+    region_starts                => [ 0,     26,  40,    55,    65,    104,   117  ],
+    region_ends                  => [ 25,    39,  54,    64,    103,   116,   127   ],
     numbering_start              => [ 1,     27,  35,    50,    53,    89,    98    ],
     numbering_end                => [ 26,    34,  49,    52,    88,    97,    107   ],
-    insertion_positions          => [ undef, 27,  undef, undef, undef, 95,    106   ],
-    essential_residues_count     => [ 26,    8,   15,    3,     36,    6,     10    ],
+    insertion_positions          => [ 0,     27,  0,     0,     0,     95,    106   ],
+    esenntial_residues_count     => [ 26,    8,   15,    3,     36,    9,     10    ],
     res_till_kabat_insetions     => 7,
   },
   IGH => {                           #FR1   CDR1  FR2    CDR2   FR3    CDR3   FR4
-    region_starts                => [ 0,     26,  40,    55,     65,    104,   -11   ],
-    region_ends                  => [ 25,    39,  54,    64,     103,   'END', -1    ],
+    region_starts                => [ 0,     26,  40,    55,     65,    104,   117   ],
+    region_ends                  => [ 25,    39,  54,    64,     103,   116,   127    ],
     numbering_start              => [ 1,     26,  36,    51,     58,    93,    103   ],
     numbering_end                => [ 25,    35,  50,    57,     92,    102,   113   ],
-    insertion_positions          => [ undef, 35,  undef, 52,     82,    100,   undef ],
-    essential_residues_count     => [ 25,    10,  15,    7,      35,    10,    11    ],
+    insertion_positions          => [ 0,     35,  0,     52,     82,    100,   0     ],
+    esenntial_residues_count     => [ 25,    10,  15,    7,      35,    10,    11    ],
     res_till_kabat_insetions     => 8,
   }
 );
@@ -58,44 +58,59 @@ my @region_names = qw(fr1 cdr1 fr2 cdr2 fr3 cdr3 fr4);
 
 sub convertToKabat
 {
-    my ($seq_ref, $ig_type_key, $if_filter_gaps) = @_;
+    my ($seq_ref, $ins_ref, $ig_type_key, $if_filter_gaps) = @_;
     my $type_info = $KabatTypes{$ig_type_key}
         or die "Unknown type '$ig_type_key'\n";
     my @seq = @$seq_ref;
-    my $end = @seq - 12;
-    my @region_ends = map { $_ eq 'END' ? $end : $_ } @{ $type_info->{region_ends} };
-
     my @converted;
     my @numbering;
     my $ignore_start_gaps = 3;
+    my $end_offset = 0;
+    my $start_offset = 0;
     for my $i (0 .. $#region_names)
     {
-        my @region = @seq[ $type_info->{region_starts}[$i] .. $region_ends[$i] ];
-        
+        my $offset = countInsertionOffset($ins_ref, $type_info->{region_starts}[$i] + $start_offset,
+                                       $type_info->{region_ends}[$i] + $end_offset) if $region_names[$i];
+        $end_offset += $offset;
+        my $region_start = $type_info->{region_starts}[$i] + $start_offset;
+        my $region_end = $type_info->{region_ends}[$i] + $end_offset;
+        my @region = @seq[ $region_start .. $region_end ];
+        my @region_ins_vector = @$ins_ref[ $region_start .. $region_end ];
         my $good_idx_ref = convertRegion(\@region,
-                                          $type_info->{essential_residues_count}[$i],
+                                          $type_info->{esenntial_residues_count}[$i],
                                           $ignore_start_gaps);
                                           
         $ignore_start_gaps = 0;
         @region = @region[@$good_idx_ref];
-      
+        @region_ins_vector = @region_ins_vector[@$good_idx_ref];
         my $insertions = 0;
         if ($region_names[$i] =~ /cdr1|cdr2|fr3/)
         {
-            $insertions = countInsertions($type_info->{essential_residues_count}[$i],
-                                          scalar(@region));
+            $insertions = countInsertions($type_info->{esenntial_residues_count}[$i],
+                                          scalar(@region),
+                                          $offset);
         }
         elsif ($region_names[$i] eq 'cdr3')
         {
             $insertions = countInsertionsCdr3(\@region, 
                                               $type_info->{res_till_kabat_insetions});
         }
-
-        push @numbering, formNumbering($type_info->{numbering_start}[$i],
-                                       $type_info->{numbering_end}[$i],
-                                       $insertions,
-                                       $type_info->{insertion_positions}[$i]);
-
+        if ($region_names[$i] eq 'cdr3')
+        {
+            push @numbering, formNumberingCdr3($type_info->{numbering_start}[$i],
+                                           $type_info->{numbering_end}[$i],
+                                           $insertions,
+                                           $type_info->{insertion_positions}[$i]);
+        }
+        else
+        {
+            push @numbering, formNumbering($type_info->{numbering_start}[$i],
+                                               $type_info->{numbering_end}[$i],
+                                               $insertions,
+                                               $type_info->{insertion_positions}[$i],
+                                               \@region_ins_vector);
+        }
+        $start_offset += $offset;
         push @converted, @region;
     }
     if( $if_filter_gaps ) {

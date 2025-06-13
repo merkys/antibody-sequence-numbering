@@ -22,7 +22,7 @@ sub numberSeq
     my $fixed_seq_ref = fixAlignment($seq_obj->getAlignedSeq(), $ins_vector);
        $fixed_seq_ref = fixCdrS($fixed_seq_ref, $ins_vector);
     my $numbering_ref = formNumbering($fixed_seq_ref, $ins_vector, $adittion_len_until_cdr3);
-    return $fixed_seq_ref, $numbering_ref
+    return $fixed_seq_ref, $numbering_ref, $ins_vector
 }
 
 
