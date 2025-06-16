@@ -80,7 +80,7 @@ sub runHmmScan
     close $fh;
     
     my $params = "--domT 80 --domtblout $dom_tblout --noali";
-    my $hmm_file = $FindBin::Bin . '/hmms/IG_combined.hmm';
+    my $hmm_file = $FindBin::RealBin . '/hmms/IG_combined.hmm';
     my $command = "hmmscan $params $hmm_file $tmp_fasta > /dev/null 2>&1";
     qx($command);
     
@@ -176,7 +176,7 @@ sub alignToDomain
     
     my $seq_file = writeFastaToTMP($seq_id, $seq_array_ref);
     my $params = "--outformat afa --trim";
-    my $hmm = "$FindBin::Bin/hmms/$organism/$domain.hmm";
+    my $hmm = $FindBin::RealBin . "/hmms/$organism/$domain.hmm";
     my $command = "hmmalign $params $hmm $seq_file";
     
     local $/ = "\n";
