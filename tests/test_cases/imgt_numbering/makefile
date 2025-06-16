@@ -5,27 +5,27 @@ DIFFS_DIR = diffs
 SCRIPTS = scripts
 RAW_DATA_DIR = raw_data
 
-HOMO_HEAVY_FASTA_DIR = ${DATA_DIR}/homo_sapiense/heavy
-HOMO_LAMBDA_FASTA_DIR = ${DATA_DIR}/homo_sapiense/lambda
-HOMO_KAPPA_FASTA_DIR = ${DATA_DIR}/homo_sapiense/kappa
+HOMO_HEAVY_FASTA_DIR = ${DATA_DIR}/homo_sapiens/heavy
+HOMO_LAMBDA_FASTA_DIR = ${DATA_DIR}/homo_sapiens/lambda
+HOMO_KAPPA_FASTA_DIR = ${DATA_DIR}/homo_sapiens/kappa
 
 HOMO_HEAVY_FASTA_FILES = $(wildcard ${HOMO_HEAVY_FASTA_DIR}/*.fasta)
 HOMO_LAMBDA_FASTA_FILES = $(wildcard ${HOMO_LAMBDA_FASTA_DIR}/*.fasta)
 HOMO_KAPPA_FASTA_FILES = $(wildcard ${HOMO_KAPPA_FASTA_DIR}/*.fasta)
 
 
-HOMO_HEAVY_ANARCI_OUT_DIR = ${ANARCI_OUTPUT_DIR}/homo_sapiense/heavy
-HOMO_LAMBDA_ANARCI_OUT_DIR = ${ANARCI_OUTPUT_DIR}/homo_sapiense/lambda
-HOMO_KAPPA_ANARCI_OUT_DIR = ${ANARCI_OUTPUT_DIR}/homo_sapiense/kappa
+HOMO_HEAVY_ANARCI_OUT_DIR = ${ANARCI_OUTPUT_DIR}/homo_sapiens/heavy
+HOMO_LAMBDA_ANARCI_OUT_DIR = ${ANARCI_OUTPUT_DIR}/homo_sapiens/lambda
+HOMO_KAPPA_ANARCI_OUT_DIR = ${ANARCI_OUTPUT_DIR}/homo_sapiens/kappa
 
 HOMO_HEAVY_OUTPUT_FILES = $(patsubst ${HOMO_HEAVY_FASTA_DIR}/%.fasta,${HOMO_HEAVY_ANARCI_OUT_DIR}/%.out,${HOMO_HEAVY_FASTA_FILES})
 HOMO_LAMBDA_OUTPUT_FILES = $(patsubst ${HOMO_LAMBDA_FASTA_DIR}/%.fasta,${HOMO_LAMBDA_ANARCI_OUT_DIR}/%.out,${HOMO_LAMBDA_FASTA_FILES})
 HOMO_KAPPA_OUTPUT_FILES = $(patsubst ${HOMO_KAPPA_FASTA_DIR}/%.fasta,${HOMO_KAPPA_ANARCI_OUT_DIR}/%.out,${HOMO_KAPPA_FASTA_FILES})
 
 
-HOMO_HEAVY_DIFF_DIR = ${DIFFS_DIR}/homo_sapiense/heavy
-HOMO_LAMBDA_DIFF_DIR = ${DIFFS_DIR}/homo_sapiense/lambda
-HOMO_KAPPA_DIFF_DIR = ${DIFFS_DIR}/homo_sapiense/kappa
+HOMO_HEAVY_DIFF_DIR = ${DIFFS_DIR}/homo_sapiens/heavy
+HOMO_LAMBDA_DIFF_DIR = ${DIFFS_DIR}/homo_sapiens/lambda
+HOMO_KAPPA_DIFF_DIR = ${DIFFS_DIR}/homo_sapiens/kappa
 
 HOMO_HEAVY_DIFF_FILES = $(patsubst ${HOMO_HEAVY_FASTA_DIR}/%.fasta, ${HOMO_HEAVY_DIFF_DIR}/%.diff,${HOMO_HEAVY_FASTA_FILES})
 HOMO_LAMBDA_DIFF_FILES = $(patsubst ${HOMO_LAMBDA_FASTA_DIR}/%.fasta, ${HOMO_LAMBDA_DIFF_DIR}/%.diff,${HOMO_LAMBDA_FASTA_FILES})
@@ -63,8 +63,8 @@ test_homo: ${HOMO_HEAVY_DIFF_FILES} ${HOMO_LAMBDA_DIFF_FILES} ${HOMO_KAPPA_DIFF_
 	@echo "-------------------------"
 	@echo "Imgt numbering, homo    |"
 	@echo "-------------------------"
-	@echo "Total diff files: $(shell find diffs/homo_sapiense -type f -name "*.diff" | wc -l)"
-	@echo "Empty diff files: $(shell find diffs/homo_sapiense -type f -name "*.diff" -empty | wc -l)"
+	@echo "Total diff files: $(shell find diffs/homo_sapiens -type f -name "*.diff" | wc -l)"
+	@echo "Empty diff files: $(shell find diffs/homo_sapiens -type f -name "*.diff" -empty | wc -l)"
 
 ${HOMO_HEAVY_DIFF_DIR}/%.diff: ${HOMO_HEAVY_ANARCI_OUT_DIR}/%.out ${HOMO_HEAVY_FASTA_DIR}/%.fasta
 	-./numberAntibodySeq -i $(word 2,$^) | ${MODIFY_MY_OUT} | diff -w -y --suppress-common-lines - $< > $@
