@@ -1,5 +1,5 @@
 HMMER3/f [3.3.2 | Nov 2020]
-NAME  mus_muluscus_IGK
+NAME  mus_musculus_IGK
 LENG  128
 ALPH  amino
 RF    yes
@@ -7,7 +7,7 @@ MM    no
 CONS  yes
 CS    no
 MAP   yes
-DATE  Wed Feb 26 22:44:19 2025
+DATE  Mon Jun 16 23:21:30 2025
 NSEQ  5049
 EFFN  1.189330
 CKSUM 2394400990

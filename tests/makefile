@@ -8,7 +8,7 @@ RAW_DATA_DIR = raw_data
 TEST_CASES_DIR = test_cases
 ## Dir Names Sets
 RAW_DATA_DIRS_NAMES = fasta sampled_fasta
-SPECIES = homo_sapiense mus_musculus
+SPECIES = homo_sapiens mus_musculus
 CHAINS = heavy kappa lambda
 TEST_CASES = imgt_numbering kabat_convertation chothia_convertation
 ## Dirs in dirs generators
@@ -38,11 +38,11 @@ GREP_ANTOBODIES = ${SCRIPTS}/data_preparation/grepAntibodies
 SPLIT_FASTA = ${SCRIPTS}/data_preparation/splitBigFastaFile
 ## Sorted Fasta Files
 SORTED_FASTA_FILES_NAMES = IGL IGK IGH
-HOMO_SORTED_FASTA_FILES = $(foreach file_name, $(SORTED_FASTA_FILES_NAMES), $(RAW_DATA_DIR)/homo_sapiense/fasta/$(file_name).fasta)
+HOMO_SORTED_FASTA_FILES = $(foreach file_name, $(SORTED_FASTA_FILES_NAMES), $(RAW_DATA_DIR)/homo_sapiens/fasta/$(file_name).fasta)
 MUS_SORTED_FASTA_FILES = $(foreach file_name, $(SORTED_FASTA_FILES_NAMES), $(RAW_DATA_DIR)/mus_musculus/fasta/$(file_name).fasta)
 SORTED_FASTA_FILES = ${HOMO_SORTED_FASTA_FILES} ${MUS_SORTED_FASTA_FILES}
 
-HOMO_SAMPLED_FASTA_FILES = $(foreach file_name, $(SORTED_FASTA_FILES_NAMES), $(RAW_DATA_DIR)/homo_sapiense/sampled_fasta/$(file_name).fasta)
+HOMO_SAMPLED_FASTA_FILES = $(foreach file_name, $(SORTED_FASTA_FILES_NAMES), $(RAW_DATA_DIR)/homo_sapiens/sampled_fasta/$(file_name).fasta)
 MUS_SAMPLED_FASTA_FILES = $(foreach file_name, $(SORTED_FASTA_FILES_NAMES), $(RAW_DATA_DIR)/mus_musculus/sampled_fasta/$(file_name).fasta)
 SAMPLED_FASTA_FILES = ${HOMO_SAMPLED_FASTA_FILES} ${MUS_SAMPLED_FASTA_FILES}
 
@@ -54,7 +54,7 @@ prepare_data: ${SAMPLED_FASTA_FILES}
 	    ./${SPLIT_FASTA} $(RAW_DATA_DIR)/$$sp/sampled_fasta/IGK.fasta $(DATA_DIR)/$$sp/kappa; \
 	done
 
-$(RAW_DATA_DIR)/homo_sapiense/sampled_fasta/%.fasta: $(RAW_DATA_DIR)/homo_sapiense/fasta/%.fasta
+$(RAW_DATA_DIR)/homo_sapiens/sampled_fasta/%.fasta: $(RAW_DATA_DIR)/homo_sapiens/fasta/%.fasta
 	seqkit sample -n ${SEQ_N} -w 0 -o $@ $<
 
 $(RAW_DATA_DIR)/mus_musculus/sampled_fasta/%.fasta: $(RAW_DATA_DIR)/mus_musculus/fasta/%.fasta
@@ -62,7 +62,7 @@ $(RAW_DATA_DIR)/mus_musculus/sampled_fasta/%.fasta: $(RAW_DATA_DIR)/mus_musculus
 
 
 ${HOMO_SORTED_FASTA_FILES}: ${ALL_SEQ_FILE}
-	./${GREP_ANTOBODIES} ${RAW_DATA_DIR}/homo_sapiense/anotation_file.tsv ${ALL_SEQ_FILE} ${RAW_DATA_DIR}/homo_sapiense/fasta
+	./${GREP_ANTOBODIES} ${RAW_DATA_DIR}/homo_sapiens/anotation_file.tsv ${ALL_SEQ_FILE} ${RAW_DATA_DIR}/homo_sapiens/fasta
 	
 ${MUS_SORTED_FASTA_FILES}: ${ALL_SEQ_FILE}
 	./${GREP_ANTOBODIES} ${RAW_DATA_DIR}/mus_musculus/anotation_file.tsv ${ALL_SEQ_FILE} ${RAW_DATA_DIR}/mus_musculus/fasta
@@ -70,12 +70,12 @@ ${MUS_SORTED_FASTA_FILES}: ${ALL_SEQ_FILE}
 
 clean_sampled_fasta:
 	rm -rf $(RAW_DATA_DIR)/mus_musculus/sampled_fasta/*
-	rm -rf $(RAW_DATA_DIR)/homo_sapiense/sampled_fasta/*
+	rm -rf $(RAW_DATA_DIR)/homo_sapiens/sampled_fasta/*
 
 clean_data:
-	rm -rf $(DATA_DIR)/homo_sapiense/heavy/*
-	rm -rf $(DATA_DIR)/homo_sapiense/lambda/*
-	rm -rf $(DATA_DIR)/homo_sapiense/kappa/*
+	rm -rf $(DATA_DIR)/homo_sapiens/heavy/*
+	rm -rf $(DATA_DIR)/homo_sapiens/lambda/*
+	rm -rf $(DATA_DIR)/homo_sapiens/kappa/*
 	rm -rf $(DATA_DIR)/mus_musculus/heavy/*
 	rm -rf $(DATA_DIR)/mus_musculus/lambda/*
 	rm -rf $(DATA_DIR)/mus_musculus/kappa/*

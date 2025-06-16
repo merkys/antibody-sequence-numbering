@@ -7,7 +7,7 @@ MM    no
 CONS  yes
 CS    no
 MAP   yes
-DATE  Wed Feb 26 22:44:19 2025
+DATE  Mon Jun 16 23:22:45 2025
 NSEQ  1386
 EFFN  1.001919
 CKSUM 282795521
@@ -413,7 +413,7 @@ MM    no
 CONS  yes
 CS    no
 MAP   yes
-DATE  Wed Feb 26 22:44:19 2025
+DATE  Mon Jun 16 23:22:45 2025
 NSEQ  448
 EFFN  0.823730
 CKSUM 1092770351
@@ -819,7 +819,7 @@ MM    no
 CONS  yes
 CS    no
 MAP   yes
-DATE  Wed Feb 26 22:44:19 2025
+DATE  Mon Jun 16 23:22:45 2025
 NSEQ  720
 EFFN  1.524353
 CKSUM 1087253362
@@ -1217,7 +1217,7 @@ HMM          A        C        D        E        F        G        H        I   
           0.02719  3.61853        *  0.61958  0.77255  0.00000        *
 //
 HMMER3/f [3.3.2 | Nov 2020]
-NAME  mus_muluscus_IGH
+NAME  mus_musculus_IGH
 LENG  128
 ALPH  amino
 RF    yes
@@ -1225,7 +1225,7 @@ MM    no
 CONS  yes
 CS    no
 MAP   yes
-DATE  Wed Feb 26 22:44:19 2025
+DATE  Mon Jun 16 23:21:30 2025
 NSEQ  3924
 EFFN  1.335972
 CKSUM 3658427594
@@ -1623,7 +1623,7 @@ HMM          A        C        D        E        F        G        H        I   
           0.01297  4.35175        *  0.61958  0.77255  0.00000        *
 //
 HMMER3/f [3.3.2 | Nov 2020]
-NAME  mus_muluscus_IGK
+NAME  mus_musculus_IGK
 LENG  128
 ALPH  amino
 RF    yes
@@ -1631,7 +1631,7 @@ MM    no
 CONS  yes
 CS    no
 MAP   yes
-DATE  Wed Feb 26 22:44:19 2025
+DATE  Mon Jun 16 23:21:30 2025
 NSEQ  5049
 EFFN  1.189330
 CKSUM 2394400990

@@ -9,7 +9,7 @@ use List::Util qw(reduce);
 use Structures::Seq;
 
 my %organism_translation = ( 'human' => 'homo_sapiens',
-                             'mouse' => 'mus_muluscus' );
+                             'mouse' => 'mus_musculus' );
 
 
 sub new

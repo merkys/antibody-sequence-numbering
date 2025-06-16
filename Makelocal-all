@@ -100,12 +100,12 @@ SCRIPTS_HMM_PREPARE = ${SCRIPTS}/hmms_prepare
 SCRIPTS_OUT_HMM_PREPARE = ${SCRIPTS_OUTPUT}/hmms_prepare
 COMBINED_HMM = ${HMMS_DIR}/IG_combined.hmm
 
-AVAILABLE_ORGANISMS = homo_sapiens mus_muluscus
+AVAILABLE_ORGANISMS = homo_sapiens mus_musculus
 
 prepare_hmm_data_base: ${COMBINED_HMM}
 
 
-${COMBINED_HMM}: prepare_homo_sapiens_hmm prepare_mus_muluscus_hmm
+${COMBINED_HMM}: prepare_homo_sapiens_hmm prepare_mus_musculus_hmm
 	cat $(foreach org, $(AVAILABLE_ORGANISMS), $(HMMS_DIR)/$(org)/*) > $@; \
 	hmmpress $@;
 
@@ -253,8 +253,8 @@ JOINING_MUS = ${HMM_OUT_MUS}/joinings
 
 STOCKHOLM_DIR_MUS= ${HMM_OUT_MUS}/stockholm
 
-HMMS_DIR_MUS = ${HMMS_DIR}/mus_muluscus
-HMM_OUT_MUS = ${SCRIPTS_OUT_HMM_PREPARE}/mus_muluscus
+HMMS_DIR_MUS = ${HMMS_DIR}/mus_musculus
+HMM_OUT_MUS = ${SCRIPTS_OUT_HMM_PREPARE}/mus_musculus
 COMBINED_DIR_MUS = ${HMM_OUT_MUS}/combined
 
 TRANSLATE_INFO_J_DIR_MUS = ${JOINING_MUS}/translate_info
@@ -292,11 +292,11 @@ STOCKHOLM_FILES_MUS = $(patsubst ${COMBINED_DIR_MUS}/%.fasta, ${STOCKHOLM_DIR_MU
 HMMS_MUS = $(patsubst ${STOCKHOLM_DIR_MUS}/%.stockholm, ${HMMS_DIR_MUS}/%.hmm,${STOCKHOLM_FILES_MUS})
 
 
-prepare_mus_muluscus_hmm: ${HMMS_MUS}
+prepare_mus_musculus_hmm: ${HMMS_MUS}
 
 
 ${HMMS_DIR_MUS}/%.hmm: ${STOCKHOLM_DIR_MUS}/%.stockholm
-	hmmbuild --hand -n mus_muluscus_$* $@ $<
+	hmmbuild --hand -n mus_musculus_$* $@ $<
 
 
 ${STOCKHOLM_DIR_MUS}/%.stockholm: ${COMBINED_DIR_MUS}/%.fasta
