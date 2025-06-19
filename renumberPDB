@@ -5,6 +5,7 @@ use warnings;
 
 use FindBin;
 use Getopt::Long::Descriptive;
+use List::Util qw( none );
 
 use lib "$FindBin::Bin/modules";
 
@@ -15,6 +16,8 @@ use IO::DataPrinter qw(generateStandartOut);
 use IO::PDB::FormatDetector qw(detectFormat);
 use IO::PDB::Parser qw(readPDB readMMCIF);
 use IO::PDB::Exporter qw(renumberPDB);
+
+my @supportedSchemes = qw( kabat chothia );
 
 my( $opt, $usage ) = describe_options(
     'Renumber sequences in PDB files',
@@ -29,8 +32,11 @@ if( $opt->help ) {
     exit;
 }
 
-my %supportedSchemes = ( 'kabat'  => 1,
-                         'chothia'=> 1 );
+if( none { $_ eq $opt->scheme } @supportedSchemes ) {
+    local $" = ', ';
+    die "scheme '" . $opt->scheme . "' is not supported, supported schemes: " .
+        "@supportedSchemes\n";
+}
 
 my %supported_fix_mods = ( 'no_fit' => 1,
                            'fit'    => 1 );
@@ -39,13 +45,6 @@ my $numbering_scheme = $opt->scheme;
 my $pdb_file = $opt->input;
 my $file_type = $opt->filetype;
 my $error_fix_mode = 'fit';
-
-if(!$supportedSchemes{lc($numbering_scheme)})
-{
-    warn "This scheme is not supported: $numbering_scheme\n";
-    print "Supported schemes:\n";
-    die join("\n", keys %supportedSchemes), "\n";
-}
 
 $file_type = detectFormat($pdb_file) if not $file_type;
 die "Could not idetify file type $pdb_file: $!" if $file_type eq 'unknown';
