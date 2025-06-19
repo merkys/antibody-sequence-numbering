@@ -18,6 +18,7 @@ use IO::PDB::Parser qw(readPDB readMMCIF);
 use IO::PDB::Exporter qw(renumberPDB);
 
 my @supportedSchemes = qw( kabat chothia );
+my @supported_fix_mods = qw( no_fit fit );
 
 my( $opt, $usage ) = describe_options(
     'Renumber sequences in PDB files',
@@ -36,10 +37,6 @@ if( none { $_ eq $opt->scheme } @supportedSchemes ) {
     local $" = ', ';
     die "scheme '" . $opt->scheme . "' is not supported, supported schemes: " .
         "@supportedSchemes\n";
-}
-
-my %supported_fix_mods = ( 'no_fit' => 1,
-                           'fit'    => 1 );
 
 my $numbering_scheme = $opt->scheme;
 my $pdb_file = $opt->input;
@@ -47,7 +44,7 @@ my $file_type = $opt->filetype;
 my $error_fix_mode = 'fit';
 
 $file_type = detectFormat($pdb_file) if not $file_type;
-die "Could not idetify file type $pdb_file: $!" if $file_type eq 'unknown';
+die "Could not identify file type $pdb_file: $!" if $file_type eq 'unknown';
 
 my ($chains_ref, $sequences_ref) = $file_type eq 'cif'
                                   ? readMMCIF($pdb_file)
