@@ -46,10 +46,8 @@ if( none { $_ eq $opt->errfix } @supported_fix_mods ) {
         "@supported_fix_mods\n";
 }
 
-my $numbering_scheme = $opt->scheme;
 my $pdb_file = $opt->input;
 my $file_type = $opt->filetype;
-my $error_fix_mode = $opt->errfix;
 
 $file_type = detectFormat($pdb_file) if not $file_type;
 die "Could not identify file type $pdb_file: $!" if $file_type eq 'unknown';
@@ -72,10 +70,10 @@ my $is_filter_gaps = 1;
 my @new_numbering;
 for my $model (@HMM_models) {
     for my $seq ($model->getSequences) {
-        my ($numbered_seq, $numbering_ref) = numberSeq( $seq, $error_fix_mode );
+        my ($numbered_seq, $numbering_ref) = numberSeq( $seq, $opt->errfix );
            ($numbered_seq, $numbering_ref) = convertImgt( $numbered_seq,
                                                           $seq->getDomain,
-                                                          $numbering_scheme,
+                                                          $opt->scheme,
                                                           $is_filter_gaps );
         push @new_numbering, $numbering_ref;
     }
