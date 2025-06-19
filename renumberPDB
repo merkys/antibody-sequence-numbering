@@ -3,8 +3,8 @@
 use strict;
 use warnings;
 
-use Getopt::Long;
 use FindBin;
+use Getopt::Long::Descriptive;
 
 use lib "$FindBin::Bin/modules";
 
@@ -16,9 +16,17 @@ use IO::PDB::FormatDetector qw(detectFormat);
 use IO::PDB::Parser qw(readPDB readMMCIF);
 use IO::PDB::Exporter qw(renumberPDB);
 
-sub usage
-{
-    die "usage\n";
+my( $opt, $usage ) = describe_options(
+    'Renumber sequences in PDB files',
+    [ 'scheme|s=s', 'numbering scheme', { default => 'kabat' } ],
+    [ 'input|i=s', 'input file' ],
+    [ 'fileType|t=s', 'input file type' ],
+    [ 'help|h', 'print usage message and exit', { shortcircuit => 1 } ],
+);
+
+if( $opt->help ) {
+    print $usage->text;
+    exit;
 }
 
 my %supportedSchemes = ( 'kabat'  => 1,
@@ -27,14 +35,11 @@ my %supportedSchemes = ( 'kabat'  => 1,
 my %supported_fix_mods = ( 'no_fit' => 1,
                            'fit'    => 1 );
 
-my( $numbering_scheme, $pdb_file, $file_type, $error_fix_mode );
+my $numbering_scheme = $opt->scheme;
+my $pdb_file = $opt->input;
+my $file_type = $opt->filetype;
+my $error_fix_mode = 'fit';
 
-GetOptions( "scheme|s=s"  => \$numbering_scheme,
-            "input|i=s"   => \$pdb_file,
-            "fileType|t=s" => \$file_type) or usage();
-
-$numbering_scheme ||= 'kabat';
-$error_fix_mode ||= 'fit';
 if(!$supportedSchemes{lc($numbering_scheme)})
 {
     warn "This scheme is not supported: $numbering_scheme\n";
