@@ -1,7 +1,7 @@
 # Domain: IGK
 # Organism: homo_sapiens
 # Sequence: 4QT5:A PDB:4QT5 4QT5
--	1	
+E	1	
 L	2	
 E	3	
 M	4	
@@ -130,7 +130,7 @@ L	126
 K	127	
 //
 # Domain: IGH
-# Organism: mus_muluscus
+# Organism: mus_musculus
 # Sequence: 4QT5:B PDB:4QT5 4QT5
 Q	1	
 V	2	
@@ -262,7 +262,7 @@ S	127
 S	128	
 //
 # Domain: IGH
-# Organism: mus_muluscus
+# Organism: mus_musculus
 # Sequence: 4QT5:H PDB:4QT5 4QT5
 Q	1	
 V	2	
@@ -396,7 +396,7 @@ S	128
 # Domain: IGK
 # Organism: homo_sapiens
 # Sequence: 4QT5:L PDB:4QT5 4QT5
--	1	
+E	1	
 L	2	
 E	3	
 M	4	
