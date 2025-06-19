@@ -24,6 +24,7 @@ my( $opt, $usage ) = describe_options(
     'Renumber sequences in PDB files',
     [ 'scheme|s=s', 'numbering scheme', { default => 'kabat' } ],
     [ 'input|i=s', 'input file' ],
+    [ 'errFix|ef=s', 'error fixing mode', { default => 'fit' } ],
     [ 'fileType|t=s', 'input file type' ],
     [ 'help|h', 'print usage message and exit', { shortcircuit => 1 } ],
 );
@@ -37,11 +38,18 @@ if( none { $_ eq $opt->scheme } @supportedSchemes ) {
     local $" = ', ';
     die "scheme '" . $opt->scheme . "' is not supported, supported schemes: " .
         "@supportedSchemes\n";
+}
+
+if( none { $_ eq $opt->errfix } @supported_fix_mods ) {
+    local $" = ', ';
+    die "fix mode '" . $opt->errfix . "' is not supported, supported modes: " .
+        "@supported_fix_mods\n";
+}
 
 my $numbering_scheme = $opt->scheme;
 my $pdb_file = $opt->input;
 my $file_type = $opt->filetype;
-my $error_fix_mode = 'fit';
+my $error_fix_mode = $opt->errfix;
 
 $file_type = detectFormat($pdb_file) if not $file_type;
 die "Could not identify file type $pdb_file: $!" if $file_type eq 'unknown';
