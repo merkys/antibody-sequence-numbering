@@ -25,14 +25,20 @@ sub residue_name
 
 sub residue_number
 {
-    my $self = shift;
-    return 0 + substr $self->{line}, 22, 4;
+    my( $self, $number_new ) = @_;
+    my $number = 0 + substr $self->{line}, 22, 4;
+    if( defined $number_new ) {
+        substr( $self->{line}, 22, 4 ) = sprintf '% 4d', $number_new;
+    }
+    return $number;
 }
 
 sub insertion_code
 {
-    my $self = shift;
-    return substr $self->{line}, 26, 1;
+    my( $self, $code_new ) = @_;
+    my $code = substr $self->{line}, 26, 1;
+    substr( $self->{line}, 26, 1 ) = $code_new if defined $code_new;
+    return $code;
 }
 
 1;
