@@ -7,6 +7,7 @@ use Exporter 'import';
 
 our @EXPORT_OK = qw(renumberPDB);
 
+use IO::PDB::Atom;
 
 sub renumberPDB
 {
@@ -18,56 +19,47 @@ sub renumberPDB
     my $chain_vector_index = 0;
     my $numbering_vector_index = 0;
     
-    my $output ='';
+    my $output = '';
     my $current_chain = $chains_ref->[$chain_vector_index];
     my $current_res_index = 0;
-    my $current_ins = "";
+    my $current_ins = '';
     
     my ($numbering, $ins);
     my $if_numbering_end = 0;
-    while(<$fh>)
-    {
-        if( $_ !~ /^ATOM/ )
-        {
+    while( <$fh> ) {
+        if( !/^ATOM/ ) {
             $output .= $_;
             next;
         }
-        my ($chain_id, $res_index, $res_ins) = unpack("x21 A1 A4 A1", $_);
-        $res_index += 0;
-        if($chain_id eq $current_chain)
-        {
-            if( $current_res_index != $res_index or $current_ins ne $res_ins)
-            {
-                $current_res_index = $res_index;
-                $current_ins = $res_ins;
-                if($numbering_ref->[$chain_vector_index]->[$numbering_vector_index])
-                {
-                    ($numbering, $ins) = _parse_numbering($numbering_ref->[$chain_vector_index]->[$numbering_vector_index]);
+
+        my $atom = IO::PDB::Atom->new( $_ );
+        if( $atom->chain eq $current_chain ) {
+            if( $current_res_index != $atom->residue_number or $current_ins ne $atom->insertion_code ) {
+                $current_res_index = $atom->residue_number;
+                $current_ins = $atom->insertion_code;
+                if( $numbering_ref->[$chain_vector_index]->[$numbering_vector_index] ) {
+                    ($numbering, $ins) = _parse_numbering( $numbering_ref->[$chain_vector_index]->[$numbering_vector_index] );
                     $numbering_vector_index++;
-                }
-                else
-                {
+                } else {
                     $if_numbering_end = 1;
                 }
             }
-            if( $if_numbering_end )
-            {
-                $numbering = $res_index;
-                $ins = $res_ins;
+            if( $if_numbering_end ) {
+                $numbering = $atom->residue_number;
+                $ins = $atom->insertion_code;
             }
-            substr($_, 22, 4) = sprintf("%4d", $numbering);
-            substr($_, 26, 1) = $ins;
-        }
-        else
-        {
+            $atom->residue_number( $numbering );
+            $atom->insertion_code( $ins );
+        } else {
             $chain_vector_index++;
             $numbering_vector_index = 0;
-            $current_chain = $chain_id;
+            $current_chain = $atom->chain;
             $if_numbering_end = 0;
         }
-        
-         $output .= $_;
+
+        $output .= $_;
     }
+
     close $fh;
     return $output
 }
