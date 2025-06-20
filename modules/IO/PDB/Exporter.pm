@@ -21,8 +21,8 @@ sub renumberPDB
     
     my $output = '';
     my $current_chain = $chains_ref->[$chain_vector_index];
-    my $current_res_index = 0;
-    my $current_ins = '';
+    my $current_res_index;
+    my $current_ins;
     
     my ($numbering, $ins);
     my $if_numbering_end = 0;
@@ -34,7 +34,8 @@ sub renumberPDB
 
         my $atom = IO::PDB::Atom->new( $_ );
         if( $atom->chain eq $current_chain ) {
-            if( $current_res_index != $atom->residue_number or $current_ins ne $atom->insertion_code ) {
+            if( !defined $current_res_index || $current_res_index != $atom->residue_number ||
+                !defined $current_ins || $current_ins ne $atom->insertion_code ) {
                 $current_res_index = $atom->residue_number;
                 $current_ins = $atom->insertion_code;
                 if( $numbering_ref->[$chain_vector_index]->[$numbering_vector_index] ) {
@@ -72,4 +73,5 @@ sub _parse_numbering
     my $insertion = $2 || ' ';
     return $number, $insertion
 }
+
 1;
