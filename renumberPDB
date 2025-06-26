@@ -3,8 +3,9 @@
 use strict;
 use warnings;
 
-use Getopt::Long;
 use FindBin;
+use Getopt::Long::Descriptive;
+use List::Util qw( none );
 
 use lib "$FindBin::Bin/modules";
 
@@ -16,34 +17,40 @@ use IO::PDB::FormatDetector qw(detectFormat);
 use IO::PDB::Parser qw(readPDB readMMCIF);
 use IO::PDB::Exporter qw(renumberPDB);
 
-sub usage
-{
-    die "usage\n";
+my @supportedSchemes = qw( kabat chothia );
+my @supported_fix_mods = qw( no_fit fit );
+
+my( $opt, $usage ) = describe_options(
+    'Renumber sequences in PDB files',
+    [ 'scheme|s=s', 'numbering scheme', { default => 'kabat' } ],
+    [ 'input|i=s', 'input file' ],
+    [ 'errFix|ef=s', 'error fixing mode', { default => 'fit' } ],
+    [ 'fileType|t=s', 'input file type' ],
+    [ 'help|h', 'print usage message and exit', { shortcircuit => 1 } ],
+);
+
+if( $opt->help ) {
+    print $usage->text;
+    exit;
 }
 
-my %supportedSchemes = ( 'kabat'  => 1,
-                         'chothia'=> 1 );
-
-my %supported_fix_mods = ( 'no_fit' => 1,
-                           'fit'    => 1 );
-
-my( $numbering_scheme, $pdb_file, $file_type, $error_fix_mode );
-
-GetOptions( "scheme|s=s"  => \$numbering_scheme,
-            "input|i=s"   => \$pdb_file,
-            "fileType|t=s" => \$file_type) or usage();
-
-$numbering_scheme ||= 'kabat';
-$error_fix_mode ||= 'fit';
-if(!$supportedSchemes{lc($numbering_scheme)})
-{
-    warn "This scheme is not supported: $numbering_scheme\n";
-    print "Supported schemes:\n";
-    die join("\n", keys %supportedSchemes), "\n";
+if( none { $_ eq $opt->scheme } @supportedSchemes ) {
+    local $" = ', ';
+    die "scheme '" . $opt->scheme . "' is not supported, supported schemes: " .
+        "@supportedSchemes\n";
 }
+
+if( none { $_ eq $opt->errfix } @supported_fix_mods ) {
+    local $" = ', ';
+    die "fix mode '" . $opt->errfix . "' is not supported, supported modes: " .
+        "@supported_fix_mods\n";
+}
+
+my $pdb_file = $opt->input;
+my $file_type = $opt->filetype;
 
 $file_type = detectFormat($pdb_file) if not $file_type;
-die "Could not idetify file type $pdb_file: $!" if $file_type eq 'unknown';
+die "Could not identify file type $pdb_file: $!" if $file_type eq 'unknown';
 
 my ($chains_ref, $sequences_ref) = $file_type eq 'cif'
                                   ? readMMCIF($pdb_file)
@@ -63,10 +70,10 @@ my $is_filter_gaps = 1;
 my @new_numbering;
 for my $model (@HMM_models) {
     for my $seq ($model->getSequences) {
-        my ($numbered_seq, $numbering_ref) = numberSeq( $seq, $error_fix_mode );
+        my ($numbered_seq, $numbering_ref) = numberSeq( $seq, $opt->errfix );
            ($numbered_seq, $numbering_ref) = convertImgt( $numbered_seq,
                                                           $seq->getDomain,
-                                                          $numbering_scheme,
+                                                          $opt->scheme,
                                                           $is_filter_gaps );
         push @new_numbering, $numbering_ref;
     }
